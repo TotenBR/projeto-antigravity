@@ -979,7 +979,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Carrega o feed de notícias e fatos relevantes em tempo real da sidebar (Ideia 3)
+  // Carrega notícias específicas do ativo via Google News RSS (substitui Yahoo Finance)
   async function loadNews(ticker) {
     detNoticias.innerHTML = `
       <div style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 1rem;">
@@ -987,40 +987,51 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
+    // Query específica: ticker + "FII" garante notícias do ativo, não do mercado geral
+    const query = encodeURIComponent(`"${ticker}" FII`);
+    const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=pt-BR&gl=BR&ceid=BR:pt-419`;
+
     try {
-      const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${ticker}.SA`;
-      const data = await fetchWithCORS(targetUrl);
-
-      if (data && data.news && data.news.length > 0) {
-        detNoticias.innerHTML = '';
-        
-        // Filtra para remover notícias sem título ou link e pega no máximo 4
-        const validNews = data.news.filter(n => n.title && n.link).slice(0, 4);
-
-        if (validNews.length === 0) {
-          showNoNewsMessage();
-          return;
-        }
-
-        validNews.forEach(item => {
-          const timeStr = formatRelativeTime(item.providerPublishTime);
-          const itemEl = document.createElement('div');
-          itemEl.className = 'news-item';
-          
-          itemEl.innerHTML = `
-            <a href="${item.link}" target="_blank" class="news-title">${item.title}</a>
-            <div class="news-meta">
-              <span>${item.publisher}</span>
-              <span>${timeStr}</span>
-            </div>
-          `;
-          detNoticias.appendChild(itemEl);
-        });
-      } else {
+      const xmlText = await fetchTextWithCORS(rssUrl);
+      if (!xmlText || xmlText.trim().length === 0) {
         showNoNewsMessage();
+        return;
       }
+
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, 'text/xml');
+      const items = Array.from(xml.querySelectorAll('item')).slice(0, 5);
+
+      if (items.length === 0) {
+        showNoNewsMessage();
+        return;
+      }
+
+      detNoticias.innerHTML = '';
+      items.forEach(item => {
+        const title     = item.querySelector('title')?.textContent || '';
+        const link      = item.querySelector('link')?.textContent || '#';
+        const pubDate   = item.querySelector('pubDate')?.textContent || '';
+        const source    = item.querySelector('source')?.textContent || 'Google News';
+
+        // Converte a data de publicação para tempo relativo
+        const timestamp = pubDate ? Math.floor(new Date(pubDate).getTime() / 1000) : 0;
+        const timeStr   = formatRelativeTime(timestamp);
+
+        const itemEl = document.createElement('div');
+        itemEl.className = 'news-item';
+        itemEl.innerHTML = `
+          <a href="${link}" target="_blank" class="news-title">${title}</a>
+          <div class="news-meta">
+            <span>${source}</span>
+            <span>${timeStr}</span>
+          </div>
+        `;
+        detNoticias.appendChild(itemEl);
+      });
+
     } catch (e) {
-      console.warn(`Erro ao buscar notícias para ${ticker}:`, e);
+      console.warn(`Erro ao buscar notícias RSS para ${ticker}:`, e);
       detNoticias.innerHTML = `
         <div style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 1rem;">
           Não foi possível carregar as notícias de mercado.
