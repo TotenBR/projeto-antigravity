@@ -263,9 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarOverlay.classList.add('active');
     document.body.style.overflow = 'hidden'; // Impede o scroll de fundo
 
-    // Renderizar Gráfico de Proventos e Notícias em tempo real
+    // Renderizar Gráfico de Proventos, Notícias e Preço em tempo real
     loadAndRenderChart(fii);
     loadNews(fii.ticker);
+    updateSinglePrice(fii.ticker);
   }
 
   // Fecha a Sidebar
@@ -478,9 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Renderiza a grade de cards com as informações correntes
     renderCards();
-    
-    // Busca atualizações de preços em tempo real
-    updatePricesRealTime();
   }
 
   // Gera labels de data retroativa para fallbacks (últimos 6 meses baseados na data atual)
@@ -721,42 +719,41 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  // Busca as cotações em tempo real da B3 via API do Yahoo e proxy CORS de forma resiliente
-  async function updatePricesRealTime() {
-    const tickers = Object.keys(fiisData);
-    
-    const promises = tickers.map(async (ticker) => {
-      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA`;
-      
-      try {
-        const data = await fetchWithCORS(targetUrl);
-        if (data && data.chart && data.chart.result && data.chart.result[0]) {
-          const price = data.chart.result[0].meta.regularMarketPrice;
-          if (price) {
-            fiisData[ticker].preco = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
-        }
-      } catch (e) {
-        console.warn(`Erro ao buscar cotação em tempo real de ${ticker}:`, e);
-      }
-    });
-
+  // Busca a cotação em tempo real de um único ativo na B3 via API do Yahoo e proxy CORS de forma pontual
+  async function updateSinglePrice(ticker) {
+    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA`;
     try {
-      await Promise.all(promises);
-      
-      // Renderiza novamente os cards com os preços reais atualizados
-      renderCards();
-      
-      // Se a sidebar estiver aberta para um FII, atualiza o preço e o simulador na tela
-      if (activeFii && fiisData[activeFii.ticker]) {
-        detPreco.innerText = fiisData[activeFii.ticker].preco;
-        const priceStr = fiisData[activeFii.ticker].preco;
-        const precoLimpo = parseFloat(priceStr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
-        calcCusto.value = precoLimpo;
-        updateSimulation();
+      const data = await fetchWithCORS(targetUrl);
+      if (data && data.chart && data.chart.result && data.chart.result[0]) {
+        const price = data.chart.result[0].meta.regularMarketPrice;
+        if (price) {
+          const formattedPrice = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          // Atualiza na memória global
+          fiisData[ticker].preco = formattedPrice;
+          
+          // Se o ativo selecionado for o mesmo atualizado, reflete na sidebar
+          if (activeFii && activeFii.ticker === ticker) {
+            detPreco.innerText = formattedPrice;
+            const priceLimpo = parseFloat(formattedPrice.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
+            calcCusto.value = priceLimpo;
+            updateSimulation();
+          }
+
+          // Atualiza visualmente o preço no card correspondente na grade
+          const cards = document.querySelectorAll('.fii-card');
+          cards.forEach(card => {
+            const h2 = card.querySelector('.card-title-group h2');
+            if (h2 && h2.innerText === ticker) {
+              const valueSpan = card.querySelector('.info-value');
+              if (valueSpan) {
+                valueSpan.innerText = formattedPrice;
+              }
+            }
+          });
+        }
       }
-    } catch (err) {
-      console.error('Erro na atualização em lote de cotações:', err);
+    } catch (e) {
+      console.warn(`Erro ao buscar cotação de ${ticker}:`, e);
     }
   }
 });
