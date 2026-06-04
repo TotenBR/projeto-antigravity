@@ -27,9 +27,17 @@
       </div>
       
       <!-- Informações do Sistema -->
-      <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.5rem;">
-        <span style="width: 8px; height: 8px; background-color: var(--color-buy); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--color-buy);"></span>
-        <span>Conectado</span>
+      <div style="display: flex; align-items: center; gap: 1.25rem;">
+        <!-- Botão Minha Carteira -->
+        <button id="btn-my-wallet" class="wallet-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 0.35rem;"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+          Minha Carteira
+        </button>
+        
+        <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.5rem;">
+          <span style="width: 8px; height: 8px; background-color: var(--color-buy); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--color-buy);"></span>
+          <span>Conectado</span>
+        </div>
       </div>
     </header>
 
@@ -54,6 +62,19 @@
           <button class="filter-btn active" data-filter-recom="todos">Todas</button>
           <button class="filter-btn" data-filter-recom="comprar">Comprar</button>
           <button class="filter-btn" data-filter-recom="manter">Manter</button>
+        </div>
+      </div>
+
+      <!-- Ordenação -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.05em;">Ordenar por</span>
+        <div class="filter-group" style="padding: 0; border: none; background: transparent;">
+          <select id="sort-select" class="sort-select">
+            <option value="alfabetica">Ticker (A-Z)</option>
+            <option value="maior-dy">Maior Yield (Último)</option>
+            <option value="menor-risco">Menor Risco</option>
+            <option value="mais-descontado">Mais Descontado (P/VP)</option>
+          </select>
         </div>
       </div>
 
@@ -113,6 +134,13 @@
         <div class="info-item">
           <span class="info-label">Risco do Fundo</span>
           <span class="info-value" id="det-alerta" style="font-size: 1.1rem; font-weight: 700;">-</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">P/VP Atual</span>
+          <div style="display: flex; align-items: baseline; gap: 0.35rem;">
+            <span class="info-value" id="det-pvp" style="font-size: 1.1rem; font-weight: 700;">-</span>
+            <span id="det-vpa" style="font-size: 0.7rem; color: var(--text-dim); font-weight: 500;">(VPA: -)</span>
+          </div>
         </div>
       </div>
 
@@ -216,6 +244,95 @@
 
     </div>
   </aside>
+
+  <!-- Modal Minha Carteira -->
+  <div id="wallet-modal" class="custom-modal">
+    <div class="modal-content glassmorphism">
+      <div class="modal-header">
+        <h2>📊 Minha Carteira de Investimentos</h2>
+        <button class="close-modal-btn" id="close-wallet-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="wallet-summary-cards">
+          <div class="summary-card">
+            <span class="card-label">Total Investido</span>
+            <span class="card-value" id="wallet-total-invested">R$ 0,00</span>
+          </div>
+          <div class="summary-card">
+            <span class="card-label">Proventos Mensais Est.</span>
+            <span class="card-value highlight-buy" id="wallet-monthly-income">R$ 0,00</span>
+          </div>
+          <div class="summary-card">
+            <span class="card-label">Yield on Cost (YOC) Médio</span>
+            <span class="card-value highlight-yoc" id="wallet-average-yoc">0,00%</span>
+          </div>
+        </div>
+        
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
+          Insira a quantidade de cotas e o preço médio pago para cada um dos ativos abaixo. Os dados são salvos localmente e os rendimentos estimam o último provento pago.
+        </p>
+
+        <div class="wallet-table-container">
+          <table class="wallet-table">
+            <thead>
+              <tr>
+                <th>Fundo</th>
+                <th>Preço Atual</th>
+                <th style="width: 100px;">Qtd. Cotas</th>
+                <th style="width: 120px;">Custo Médio (R$)</th>
+                <th>Rendimento Mensal</th>
+                <th>Total Aplicado</th>
+              </tr>
+            </thead>
+            <tbody id="wallet-table-body">
+              <!-- Linhas geradas dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-save-wallet" class="save-btn">Salvar Carteira</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra Flutuante de Comparação -->
+  <div id="compare-floating-bar" class="compare-bar">
+    <div class="compare-bar-content">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <span class="compare-bar-icon">⚖️</span>
+        <span id="compare-bar-text" style="font-weight: 500; font-size: 0.9rem;">Selecione 2 fundos para comparar</span>
+      </div>
+      <div class="compare-selected-badges" id="compare-badges"></div>
+      <button id="btn-compare-now" class="compare-btn" disabled>Comparar</button>
+    </div>
+  </div>
+
+  <!-- Modal Comparativo -->
+  <div id="compare-modal" class="custom-modal">
+    <div class="modal-content glassmorphism compare-modal-content">
+      <div class="modal-header">
+        <h2>⚖️ Comparador de Ativos Lado a Lado</h2>
+        <button class="close-modal-btn" id="close-compare-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="compare-table-container">
+          <table class="compare-table">
+            <thead>
+              <tr id="compare-table-headers">
+                <th>Métrica / Indicador</th>
+                <th id="compare-col-1" style="width: 40%; text-align: center;">-</th>
+                <th id="compare-col-2" style="width: 40%; text-align: center;">-</th>
+              </tr>
+            </thead>
+            <tbody id="compare-table-body">
+              <!-- Preenchido pelo Javascript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Bibliotecas externas e Scripts locais -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

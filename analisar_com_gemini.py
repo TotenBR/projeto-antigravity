@@ -60,7 +60,8 @@ Gere uma resposta em JSON estrito contendo os seguintes campos:
   "pontos_criticos": "Riscos específicos identificados no relatório, como alavancagem, vacância, inadimplência, ou vencimento de contratos importantes. Máximo 3 frases.",
   "boas_noticias": "Eventos favoráveis recentes, como novas locações, vendas favoráveis, reajustes inflacionários ou queda na vacância. Máximo 2 frases.",
   "tendencia_preco": "subir" ou "cair" ou "manter",
-  "tendencia_dividendos": "aumentar" ou "cair" ou "manter"
+  "tendencia_dividendos": "aumentar" ou "cair" ou "manter",
+  "fato_relevante_recente": <booleano true ou false indicando se há fatos relevantes ou avisos urgentes recentes descritos no relatório gerencial>
 }}
 
 Importante:
@@ -134,6 +135,7 @@ def main():
             fiis_data[ticker]["boas_noticias"] = analysis.get("boas_noticias", fiis_data[ticker].get("boas_noticias", ""))
             fiis_data[ticker]["tendencia_preco"] = analysis.get("tendencia_preco", fiis_data[ticker].get("tendencia_preco", "manter"))
             fiis_data[ticker]["tendencia_dividendos"] = analysis.get("tendencia_dividendos", fiis_data[ticker].get("tendencia_dividendos", "manter"))
+            fiis_data[ticker]["fato_relevante_recente"] = analysis.get("fato_relevante_recente", fiis_data[ticker].get("fato_relevante_recente", False))
             
             print(f"[{ticker}] Sucesso: Recom: {fiis_data[ticker]['recomendacao']} | Alerta: {fiis_data[ticker]['alerta']}")
             updated_count += 1

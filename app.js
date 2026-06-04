@@ -18,6 +18,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const detTrendIcon = document.getElementById('det-trend-icon');
   const detTrendText = document.getElementById('det-trend-text');
   const detNoticias = document.getElementById('det-noticias');
+  const detPvp = document.getElementById('det-pvp');
+  const detVpa = document.getElementById('det-vpa');
+  
+  // Elementos Adicionais da Carteira
+  const sortSelect = document.getElementById('sort-select');
+  const btnMyWallet = document.getElementById('btn-my-wallet');
+  const walletModal = document.getElementById('wallet-modal');
+  const closeWalletModalBtn = document.getElementById('close-wallet-modal');
+  const walletTableBody = document.getElementById('wallet-table-body');
+  const btnSaveWallet = document.getElementById('btn-save-wallet');
+  const walletTotalInvested = document.getElementById('wallet-total-invested');
+  const walletMonthlyIncome = document.getElementById('wallet-monthly-income');
+  const walletAverageYoc = document.getElementById('wallet-average-yoc');
+  
+  // Elementos Adicionais do Comparador
+  const compareFloatingBar = document.getElementById('compare-floating-bar');
+  const compareBarText = document.getElementById('compare-bar-text');
+  const compareBadges = document.getElementById('compare-badges');
+  const btnCompareNow = document.getElementById('btn-compare-now');
+  const compareModal = document.getElementById('compare-modal');
+  const closeCompareModalBtn = document.getElementById('close-compare-modal');
+  const compareCol1 = document.getElementById('compare-col-1');
+  const compareCol2 = document.getElementById('compare-col-2');
+  const compareTableBody = document.getElementById('compare-table-body');
   
   let currentChart = null;
   let activeCategoryFilter = 'todos';
@@ -25,6 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let searchQuery = '';
   let activeFii = null; // FII aberto no momento
   let activeDividendoMaisRecente = 0;
+  
+  // Variáveis de Estado Novas
+  let activeSort = 'alfabetica';
+  let myWallet = JSON.parse(localStorage.getItem('my_wallet_data')) || {};
+  let selectedForCompare = []; // tickers selecionados para comparador
   
   // Elementos do Simulador
   const calcCotas = document.getElementById('calc-cotas');
@@ -62,6 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Escuta a Ordenação
+  sortSelect.addEventListener('change', (e) => {
+    activeSort = e.target.value;
+    renderCards();
+  });
+
   // Escuta a Barra de Pesquisa
   searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value.toLowerCase().trim();
@@ -75,6 +110,125 @@ document.addEventListener('DOMContentLoaded', () => {
   // Escuta os Inputs do Simulador
   calcCotas.addEventListener('input', () => updateSimulation());
   calcCusto.addEventListener('input', () => updateSimulation());
+
+  // --- Eventos da Carteira ---
+  btnMyWallet.addEventListener('click', () => {
+    renderWalletTable();
+    walletModal.classList.add('open');
+  });
+  
+  closeWalletModalBtn.addEventListener('click', () => {
+    walletModal.classList.remove('open');
+  });
+  
+  walletModal.addEventListener('click', (e) => {
+    if (e.target === walletModal) {
+      walletModal.classList.remove('open');
+    }
+  });
+
+  btnSaveWallet.addEventListener('click', () => {
+    const newWallet = {};
+    const tickers = Object.keys(fiisData);
+    
+    tickers.forEach(ticker => {
+      const cotasInput = walletTableBody.querySelector(`.wallet-cotas-input[data-ticker="${ticker}"]`);
+      const custoInput = walletTableBody.querySelector(`.wallet-custo-input[data-ticker="${ticker}"]`);
+      
+      if (cotasInput && custoInput) {
+        const cotas = parseInt(cotasInput.value) || 0;
+        const custo = parseFloat(custoInput.value) || 0;
+        
+        if (cotas > 0) {
+          newWallet[ticker] = { cotas, custo };
+        }
+      }
+    });
+    
+    myWallet = newWallet;
+    localStorage.setItem('my_wallet_data', JSON.stringify(myWallet));
+    alert('Sua carteira de investimentos foi salva com sucesso no navegador!');
+    walletModal.classList.remove('open');
+    renderCards();
+  });
+
+  // --- Eventos do Comparador ---
+  btnCompareNow.addEventListener('click', () => {
+    if (selectedForCompare.length !== 2) return;
+    
+    const ticker1 = selectedForCompare[0];
+    const ticker2 = selectedForCompare[1];
+    const fii1 = fiisData[ticker1];
+    const fii2 = fiisData[ticker2];
+    
+    if (!fii1 || !fii2) return;
+    
+    compareCol1.innerText = ticker1;
+    compareCol2.innerText = ticker2;
+    
+    const precoLimpo1 = parseFloat(fii1.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    const precoLimpo2 = parseFloat(fii2.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    
+    const pvp1 = fii1.vpa ? (precoLimpo1 / fii1.vpa) : 0;
+    const pvp2 = fii2.vpa ? (precoLimpo2 / fii2.vpa) : 0;
+    
+    const divRecente1 = fii1.dividendos_recentes ? fii1.dividendos_recentes[fii1.dividendos_recentes.length - 1] : 0;
+    const divRecente2 = fii2.dividendos_recentes ? fii2.dividendos_recentes[fii2.dividendos_recentes.length - 1] : 0;
+    
+    const mediaDiv1 = fii1.dividendos_recentes ? (fii1.dividendos_recentes.reduce((a, b) => a + b, 0) / fii1.dividendos_recentes.length) : 0;
+    const mediaDiv2 = fii2.dividendos_recentes ? (fii2.dividendos_recentes.reduce((a, b) => a + b, 0) / fii2.dividendos_recentes.length) : 0;
+    
+    const metrics = [
+      { name: "Nome do Fundo", val1: fii1.nome, val2: fii2.nome },
+      { name: "Segmento / Tipo", val1: fii1.tipo, val2: fii2.tipo },
+      { name: "Preço de Mercado", val1: fii1.preco, val2: fii2.preco },
+      { name: "Valor Patrimonial (VPA)", val1: fii1.vpa ? `R$ ${fii1.vpa.toFixed(2)}` : '-', val2: fii2.vpa ? `R$ ${fii2.vpa.toFixed(2)}` : '-' },
+      { name: "Indicador P/VP", val1: pvp1 > 0 ? pvp1.toFixed(2) : '-', val2: pvp2 > 0 ? pvp2.toFixed(2) : '-' },
+      { name: "Recomendação Analítica", val1: fii1.recomendacao, val2: fii2.recomendacao, isBadge: true, badgeType1: fii1.recomendacao.toLowerCase(), badgeType2: fii2.recomendacao.toLowerCase() },
+      { name: "Nota de Alerta (Risco)", val1: `${fii1.alerta}/10`, val2: `${fii2.alerta}/10` },
+      { name: "Tendência de Preço", val1: fii1.tendencia_preco, val2: fii2.tendencia_preco, isTrend: true },
+      { name: "Tendência de Dividendos", val1: fii1.tendencia_dividendos, val2: fii2.tendencia_dividendos, isTrend: true },
+      { name: "Último Dividendo Pago", val1: divRecente1 ? `R$ ${divRecente1.toFixed(2)}` : '-', val2: divRecente2 ? `R$ ${divRecente2.toFixed(2)}` : '-' },
+      { name: "Média de Dividendos (6M)", val1: mediaDiv1 ? `R$ ${mediaDiv1.toFixed(2)}` : '-', val2: mediaDiv2 ? `R$ ${mediaDiv2.toFixed(2)}` : '-' }
+    ];
+    
+    compareTableBody.innerHTML = '';
+    
+    metrics.forEach(m => {
+      const row = document.createElement('tr');
+      let colVal1 = m.val1;
+      let colVal2 = m.val2;
+      
+      if (m.isBadge) {
+        colVal1 = `<span class="badge-status ${m.badgeType1}" style="display:inline-flex; justify-content:center; width:100px;">${m.val1}</span>`;
+        colVal2 = `<span class="badge-status ${m.badgeType2}" style="display:inline-flex; justify-content:center; width:100px;">${m.val2}</span>`;
+      } else if (m.isTrend) {
+        const tClass1 = m.val1 === 'aumentar' || m.val1 === 'subir' ? 'aumentar' : m.val1 === 'manter' ? 'manter' : 'cair';
+        const tClass2 = m.val2 === 'aumentar' || m.val2 === 'subir' ? 'aumentar' : m.val2 === 'manter' ? 'manter' : 'cair';
+        colVal1 = `<span style="text-transform: capitalize; font-weight: 600;" class="trend-${tClass1}">${m.val1 === 'aumentar' ? 'Subir' : m.val1}</span>`;
+        colVal2 = `<span style="text-transform: capitalize; font-weight: 600;" class="trend-${tClass2}">${m.val2 === 'aumentar' ? 'Subir' : m.val2}</span>`;
+      }
+      
+      row.innerHTML = `
+        <td style="font-weight: 500; color: var(--text-muted);">${m.name}</td>
+        <td style="text-align: center; font-weight: 600;">${colVal1}</td>
+        <td style="text-align: center; font-weight: 600;">${colVal2}</td>
+      `;
+      compareTableBody.appendChild(row);
+    });
+    
+    compareModal.classList.add('open');
+  });
+
+  closeCompareModalBtn.addEventListener('click', () => {
+    compareModal.classList.remove('open');
+  });
+  
+  compareModal.addEventListener('click', (e) => {
+    if (e.target === compareModal) {
+      compareModal.classList.remove('open');
+    }
+  });
 
   // Renderiza os Cards com Base nos Filtros Ativos
   function renderCards() {
@@ -114,6 +268,35 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       return matchesSearch && matchesCategory && matchesRecom;
+    });
+
+    // Ordenação Dinâmica
+    filteredFiis.sort((a, b) => {
+      const fiiA = fiisData[a];
+      const fiiB = fiisData[b];
+      
+      const precoA = parseFloat(fiiA.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+      const precoB = parseFloat(fiiB.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+      
+      const divA = fiiA.dividendos_recentes ? fiiA.dividendos_recentes[fiiA.dividendos_recentes.length - 1] : 0;
+      const divB = fiiB.dividendos_recentes ? fiiB.dividendos_recentes[fiiB.dividendos_recentes.length - 1] : 0;
+      
+      const dyA = precoA > 0 ? (divA / precoA) : 0;
+      const dyB = precoB > 0 ? (divB / precoB) : 0;
+      
+      const pvpA = fiiA.vpa && precoA > 0 ? (precoA / fiiA.vpa) : 999;
+      const pvpB = fiiB.vpa && precoB > 0 ? (precoB / fiiB.vpa) : 999;
+      
+      if (activeSort === 'alfabetica') {
+        return fiiA.ticker.localeCompare(fiiB.ticker);
+      } else if (activeSort === 'maior-dy') {
+        return dyB - dyA;
+      } else if (activeSort === 'menor-risco') {
+        return fiiA.alerta - fiiB.alerta;
+      } else if (activeSort === 'mais-descontado') {
+        return pvpA - pvpB;
+      }
+      return 0;
     });
 
     if (filteredFiis.length === 0) {
@@ -157,20 +340,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const trendPreco = getTrendData(fii.tendencia_preco);
     const trendDivs = getTrendData(fii.tendencia_dividendos);
 
+    const precoLimpo = parseFloat(fii.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    const pvp = fii.vpa ? (precoLimpo / fii.vpa) : 0;
+    const isDescontado = pvp > 0 && pvp < 1.0;
+    const pvpFormatted = pvp > 0 ? pvp.toFixed(2) : '-';
+
+    const ownsIt = myWallet[fii.ticker] && myWallet[fii.ticker].cotas > 0;
+    const isChecked = selectedForCompare.includes(fii.ticker) ? 'checked' : '';
+
     card.innerHTML = `
+      <!-- Checkbox de Comparação -->
+      <label class="compare-checkbox-container" onclick="event.stopPropagation();">
+        <input type="checkbox" class="compare-checkbox" data-ticker="${fii.ticker}" ${isChecked}>
+        <span class="checkmark"></span>
+      </label>
+
       <div class="card-header">
         <div class="card-title-group">
-          <h2>${fii.ticker}</h2>
+          <h2 style="display: inline-flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+            ${fii.ticker}
+            ${ownsIt ? '<span style="font-size: 0.65rem; background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); padding: 0.1rem 0.35rem; border-radius: 4px; font-weight: 700; line-height: 1;">CARTEIRA</span>' : ''}
+            ${fii.fato_relevante_recente ? '<span class="pulse-dot-inline" title="Fato Relevante Recente"></span>' : ''}
+          </h2>
           <span>${fii.nome}</span>
         </div>
         <span class="badge-type">${fii.tipo.split(' ')[0]}</span>
       </div>
       
       <div class="card-body-content" style="display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.25rem;">
-        <!-- Bloco do Preço Principal -->
-        <div class="info-item">
-          <span class="info-label">Preço Atual</span>
-          <span class="info-value" style="font-size: 1.35rem; font-weight: 700; color: var(--text-main);">${fii.preco}</span>
+        <!-- Bloco do Preço Principal & P/VP -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+          <div class="info-item">
+            <span class="info-label">Preço Atual</span>
+            <span class="info-value" style="font-size: 1.35rem; font-weight: 700; color: var(--text-main);">${fii.preco}</span>
+          </div>
+          <div class="info-item" style="align-items: flex-end; text-align: right;">
+            <span class="info-label">P/VP</span>
+            <div style="display: flex; align-items: center; gap: 0.3rem;">
+              ${isDescontado ? '<span style="font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 4px; background: rgba(16, 185, 129, 0.12); color: var(--color-buy); border: 1px solid rgba(16, 185, 129, 0.2); letter-spacing: 0.02em; line-height: 1;">DESCONTO</span>' : ''}
+              <span class="info-value ${isDescontado ? 'highlight-yoc' : ''}" style="font-size: 1.15rem; font-weight: 700;">${pvpFormatted}</span>
+            </div>
+          </div>
         </div>
         
         <!-- Título da Seção de Tendências -->
@@ -205,6 +415,24 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
+    const checkbox = card.querySelector('.compare-checkbox');
+    checkbox.addEventListener('change', (e) => {
+      const ticker = e.target.getAttribute('data-ticker');
+      if (e.target.checked) {
+        if (selectedForCompare.length >= 2) {
+          e.target.checked = false;
+          alert('Você só pode selecionar até 2 ativos para comparação lado a lado.');
+          return;
+        }
+        if (!selectedForCompare.includes(ticker)) {
+          selectedForCompare.push(ticker);
+        }
+      } else {
+        selectedForCompare = selectedForCompare.filter(t => t !== ticker);
+      }
+      updateCompareBar();
+    });
+
     card.addEventListener('click', () => openSidebar(fii));
     return card;
   }
@@ -220,9 +448,20 @@ document.addEventListener('DOMContentLoaded', () => {
     detPreco.innerText = fii.preco;
     detAlerta.innerText = `${fii.alerta}/10`;
 
+    // Atualiza P/VP e VPA na Sidebar
+    const precoLimpo = parseFloat(fii.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
+    const pvp = fii.vpa ? (precoLimpo / fii.vpa) : 0;
+    detPvp.innerText = pvp > 0 ? pvp.toFixed(2) : '-';
+    detVpa.innerText = fii.vpa ? `(VPA: R$ ${fii.vpa.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})` : '(VPA: -)';
+    
+    if (pvp > 0 && pvp < 1.0) {
+      detPvp.className = 'info-value highlight-yoc';
+    } else {
+      detPvp.className = 'info-value';
+    }
+
     // Inicializa os campos do Simulador
     calcCotas.value = 100;
-    const precoLimpo = parseFloat(fii.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
     calcCusto.value = precoLimpo;
     updateSimulation();
     
@@ -796,5 +1035,122 @@ document.addEventListener('DOMContentLoaded', () => {
       calcCusto.value = precoLimpo;
       updateSimulation();
     }
+  }
+
+  // --- Função Auxiliar do Comparador ---
+  function updateCompareBar() {
+    if (selectedForCompare.length > 0) {
+      compareFloatingBar.classList.add('visible');
+      compareBadges.innerHTML = '';
+      
+      selectedForCompare.forEach(ticker => {
+        const badge = document.createElement('div');
+        badge.className = 'compare-badge';
+        badge.innerHTML = `
+          <span>${ticker}</span>
+          <button data-remove-ticker="${ticker}">&times;</button>
+        `;
+        badge.querySelector('button').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const removeTicker = e.target.getAttribute('data-remove-ticker');
+          selectedForCompare = selectedForCompare.filter(t => t !== removeTicker);
+          
+          // Desmarca checkbox no card
+          const cb = document.querySelector(`.compare-checkbox[data-ticker="${removeTicker}"]`);
+          if (cb) cb.checked = false;
+          
+          updateCompareBar();
+        });
+        compareBadges.appendChild(badge);
+      });
+      
+      if (selectedForCompare.length === 2) {
+        compareBarText.innerText = 'Comparar fundos selecionados:';
+        btnCompareNow.disabled = false;
+      } else {
+        compareBarText.innerText = 'Selecione 2 fundos para comparar:';
+        btnCompareNow.disabled = true;
+      }
+    } else {
+      compareFloatingBar.classList.remove('visible');
+    }
+  }
+
+  // --- Função Auxiliar da Carteira ---
+  function renderWalletTable() {
+    walletTableBody.innerHTML = '';
+    const tickers = Object.keys(fiisData).sort();
+    
+    tickers.forEach(ticker => {
+      const fii = fiisData[ticker];
+      const data = myWallet[ticker] || { cotas: 0, custo: 0 };
+      const precoLimpo = parseFloat(fii.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="font-weight: 600;">
+          <div>${ticker}</div>
+          <div style="font-size: 0.7rem; color: var(--text-dim); font-weight: normal;">${fii.nome.slice(0, 20)}...</div>
+        </td>
+        <td>R$ ${precoLimpo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+        <td>
+          <input type="number" class="wallet-input wallet-cotas-input" data-ticker="${ticker}" value="${data.cotas > 0 ? data.cotas : ''}" min="0" placeholder="0">
+        </td>
+        <td>
+          <input type="number" class="wallet-input wallet-custo-input" data-ticker="${ticker}" value="${data.custo > 0 ? data.custo.toFixed(2) : ''}" min="0" step="0.01" placeholder="0,00">
+        </td>
+        <td class="wallet-row-income" data-ticker="${ticker}">R$ 0,00</td>
+        <td class="wallet-row-total" data-ticker="${ticker}">R$ 0,00</td>
+      `;
+      walletTableBody.appendChild(row);
+    });
+    
+    const cotasInputs = walletTableBody.querySelectorAll('.wallet-cotas-input');
+    const custoInputs = walletTableBody.querySelectorAll('.wallet-custo-input');
+    
+    const updateCalculations = () => {
+      let totalPortfolioInvested = 0;
+      let totalPortfolioMonthlyIncome = 0;
+      
+      tickers.forEach(ticker => {
+        const fii = fiisData[ticker];
+        const cotasInput = walletTableBody.querySelector(`.wallet-cotas-input[data-ticker="${ticker}"]`);
+        const custoInput = walletTableBody.querySelector(`.wallet-custo-input[data-ticker="${ticker}"]`);
+        
+        const cotas = parseInt(cotasInput.value) || 0;
+        const custo = parseFloat(custoInput.value) || 0;
+        
+        const divRecente = fii.dividendos_recentes ? fii.dividendos_recentes[fii.dividendos_recentes.length - 1] : 0;
+        
+        const rowIncome = cotas * divRecente;
+        const rowTotal = cotas * custo;
+        
+        const incomeCell = walletTableBody.querySelector(`.wallet-row-income[data-ticker="${ticker}"]`);
+        const totalCell = walletTableBody.querySelector(`.wallet-row-total[data-ticker="${ticker}"]`);
+        
+        incomeCell.innerText = `R$ ${rowIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        totalCell.innerText = `R$ ${rowTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        
+        if (cotas > 0) {
+          totalPortfolioInvested += rowTotal;
+          totalPortfolioMonthlyIncome += rowIncome;
+        }
+      });
+      
+      walletTotalInvested.innerText = `R$ ${totalPortfolioInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      walletMonthlyIncome.innerText = `R$ ${totalPortfolioMonthlyIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      
+      if (totalPortfolioInvested > 0) {
+        const avgYoc = ((totalPortfolioMonthlyIncome * 12) / totalPortfolioInvested) * 100;
+        walletAverageYoc.innerText = `${avgYoc.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+      } else {
+        walletAverageYoc.innerText = '0,00%';
+      }
+    };
+    
+    cotasInputs.forEach(input => input.addEventListener('input', updateCalculations));
+    custoInputs.forEach(input => input.addEventListener('input', updateCalculations));
+    
+    updateCalculations();
   }
 });
