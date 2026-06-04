@@ -479,6 +479,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Renderiza a grade de cards com as informações correntes
     renderCards();
+    
+    // Busca atualizações de preços em tempo real em lote com delay inteligente
+    updatePricesRealTime();
   }
 
   // Gera labels de data retroativa para fallbacks (últimos 6 meses baseados na data atual)
@@ -719,6 +722,9 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  // Auxiliar para atrasar a execução e evitar bloqueios por taxa de requisição (Rate Limit)
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
   // Busca a cotação em tempo real de um único ativo na B3 via API do Yahoo e proxy CORS de forma pontual
   async function updateSinglePrice(ticker) {
     const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA`;
@@ -754,6 +760,41 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {
       console.warn(`Erro ao buscar cotação de ${ticker}:`, e);
+    }
+  }
+
+  // Busca as cotações em tempo real de todos os ativos da B3 na inicialização de forma sequencial com delay
+  async function updatePricesRealTime() {
+    const tickers = Object.keys(fiisData);
+    
+    for (const ticker of tickers) {
+      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA`;
+      
+      try {
+        const data = await fetchWithCORS(targetUrl);
+        if (data && data.chart && data.chart.result && data.chart.result[0]) {
+          const price = data.chart.result[0].meta.regularMarketPrice;
+          if (price) {
+            fiisData[ticker].preco = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        }
+      } catch (e) {
+        console.warn(`Erro ao buscar cotação em tempo real de ${ticker}:`, e);
+      }
+      // Pequeno delay de 120ms para espaçar as consultas e evitar o bloqueio de IP 429
+      await sleep(120);
+    }
+
+    // Renderiza novamente os cards com os preços reais atualizados na grade principal
+    renderCards();
+    
+    // Se a sidebar estiver aberta para um FII, atualiza o preço na tela
+    if (activeFii && fiisData[activeFii.ticker]) {
+      detPreco.innerText = fiisData[activeFii.ticker].preco;
+      const priceStr = fiisData[activeFii.ticker].preco;
+      const precoLimpo = parseFloat(priceStr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
+      calcCusto.value = precoLimpo;
+      updateSimulation();
     }
   }
 });
