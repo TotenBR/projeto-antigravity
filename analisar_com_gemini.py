@@ -71,9 +71,9 @@ Importante:
 """
 
     try:
-        # Utiliza o modelo gemini-2.5-flash por ser rápido, inteligente e econômico
+        # Utiliza o modelo gemini-2.5-pro para máxima inteligência e análise de documentos
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.5-pro',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
