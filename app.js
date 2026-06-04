@@ -166,28 +166,32 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="badge-type">${fii.tipo.split(' ')[0]}</span>
       </div>
       
-      <div class="card-body-content" style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.25rem;">
+      <div class="card-body-content" style="display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.25rem;">
         <!-- Bloco do Preço Principal -->
         <div class="info-item">
           <span class="info-label">Preço Atual</span>
           <span class="info-value" style="font-size: 1.35rem; font-weight: 700; color: var(--text-main);">${fii.preco}</span>
         </div>
         
-        <!-- Badges de Tendências Lado a Lado -->
-        <div style="display: flex; gap: 0.5rem; width: 100%;">
-          <div class="tendencia-badge ${trendPreco.trendClass}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3rem; padding: 0.4rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.03);">
-            <span style="color: var(--text-dim); font-weight: 500;">Preço:</span>
-            <span style="display: inline-flex; align-items: center; gap: 0.15rem;">
-              ${trendPreco.icon}
-              <span style="text-transform: capitalize;">${fii.tendencia_preco}</span>
-            </span>
-          </div>
-          <div class="tendencia-badge ${trendDivs.trendClass}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3rem; padding: 0.4rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.03);">
-            <span style="color: var(--text-dim); font-weight: 500;">Divs:</span>
-            <span style="display: inline-flex; align-items: center; gap: 0.15rem;">
-              ${trendDivs.icon}
-              <span style="text-transform: capitalize;">${fii.tendencia_dividendos === 'aumentar' ? 'Subir' : fii.tendencia_dividendos}</span>
-            </span>
+        <!-- Título da Seção de Tendências -->
+        <div style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.15rem;">
+          <span class="info-label" style="display: block;">Tendências</span>
+          <!-- Badges de Tendências Lado a Lado -->
+          <div style="display: flex; gap: 0.5rem; width: 100%;">
+            <div class="tendencia-badge ${trendPreco.trendClass}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3rem; padding: 0.4rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.03);">
+              <span style="color: var(--text-dim); font-weight: 500;">Preço:</span>
+              <span style="display: inline-flex; align-items: center; gap: 0.15rem;">
+                ${trendPreco.icon}
+                <span style="text-transform: capitalize;">${fii.tendencia_preco}</span>
+              </span>
+            </div>
+            <div class="tendencia-badge ${trendDivs.trendClass}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3rem; padding: 0.4rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.03);">
+              <span style="color: var(--text-dim); font-weight: 500;">Dividendo:</span>
+              <span style="display: inline-flex; align-items: center; gap: 0.15rem;">
+                ${trendDivs.icon}
+                <span style="text-transform: capitalize;">${fii.tendencia_dividendos === 'aumentar' ? 'Subir' : fii.tendencia_dividendos}</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
