@@ -510,6 +510,84 @@ footer {
   border-top: 1px solid var(--border-color);
 }
 
+/* Estilos do Simulador / Calculadora na Sidebar */
+.calculator-card {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid var(--border-color);
+  padding: 1.2rem;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.calculator-inputs {
+  display: flex;
+  gap: 1rem;
+}
+
+.calc-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.calc-input-group label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.calc-input-group input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  color: var(--text-main);
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.calc-input-group input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.calculator-results {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--radius-md);
+  margin-top: 0.25rem;
+}
+
+.calc-result-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.calc-result-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.calc-result-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.highlight-yoc {
+  color: var(--color-buy);
+}
+
+
 /* Responsive adjustment */
 @media (max-width: 768px) {
   .details-sidebar {

@@ -136,6 +136,36 @@
         </div>
       </div>
 
+      <!-- Simulador de Proventos e YOC -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <h3 class="detail-block-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="12" y1="9" x2="12" y2="15"></line><line x1="9" y1="12" x2="15" y2="12"></line></svg>
+          Simulador de Rendimentos & YOC
+        </h3>
+        <div class="detail-text-card calculator-card">
+          <div class="calculator-inputs">
+            <div class="calc-input-group">
+              <label for="calc-cotas">Nº de Cotas</label>
+              <input type="number" id="calc-cotas" value="100" min="1">
+            </div>
+            <div class="calc-input-group">
+              <label for="calc-custo">Preço Médio (R$)</label>
+              <input type="number" id="calc-custo" value="100" step="0.01" min="0.01">
+            </div>
+          </div>
+          <div class="calculator-results">
+            <div class="calc-result-item">
+              <span class="calc-result-label">Provento Mensal</span>
+              <span class="calc-result-value" id="calc-result-mensal">R$ 0,00</span>
+            </div>
+            <div class="calc-result-item">
+              <span class="calc-result-label">Yield on Cost (YOC) Anual</span>
+              <span class="calc-result-value highlight-yoc" id="calc-result-yoc">0,00%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Tese de Investimentos -->
       <div style="display: flex; flex-direction: column; gap: 0.5rem;">
         <h3 class="detail-block-title">

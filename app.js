@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeCategoryFilter = 'todos';
   let activeRecomFilter = 'todos';
   let searchQuery = '';
+  let activeFii = null; // FII aberto no momento
+  
+  // Elementos do Simulador
+  const calcCotas = document.getElementById('calc-cotas');
+  const calcCusto = document.getElementById('calc-custo');
+  const calcResultMensal = document.getElementById('calc-result-mensal');
+  const calcResultYoc = document.getElementById('calc-result-yoc');
 
   // Inicializa o Renderizador
   renderCards();
@@ -57,6 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fecha Sidebar
   closeSidebarBtn.addEventListener('click', closeSidebar);
   sidebarOverlay.addEventListener('click', closeSidebar);
+
+  // Escuta os Inputs do Simulador
+  calcCotas.addEventListener('input', () => updateSimulation());
+  calcCusto.addEventListener('input', () => updateSimulation());
 
   // Renderiza os Cards com Base nos Filtros Ativos
   function renderCards() {
@@ -169,11 +180,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Abre a Sidebar de Detalhes
   function openSidebar(fii) {
+    activeFii = fii; // Define o FII ativo
+    
     detTicker.innerText = fii.ticker;
     detNome.innerText = fii.nome;
     detTipo.innerText = fii.tipo;
     detPreco.innerText = fii.preco;
     detAlerta.innerText = `${fii.alerta}/10`;
+
+    // Inicializa os campos do Simulador
+    calcCotas.value = 100;
+    const precoLimpo = parseFloat(fii.preco.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 100;
+    calcCusto.value = precoLimpo;
+    updateSimulation();
     
     // Recomendação Badge
     detRecom.className = `badge-status ${fii.recomendacao.toLowerCase()}`;
@@ -221,6 +240,30 @@ document.addEventListener('DOMContentLoaded', () => {
     detailsSidebar.classList.remove('open');
     sidebarOverlay.classList.remove('active');
     document.body.style.overflow = 'auto';
+  }
+
+  // Lógica de cálculo do Simulador e Yield on Cost (YOC)
+  function updateSimulation() {
+    if (!activeFii) return;
+    
+    const cotas = parseInt(calcCotas.value) || 0;
+    const custoMedio = parseFloat(calcCusto.value) || 0;
+    
+    // Obtém o dividendo mais recente (último item do array dividendos_recentes)
+    const ultimoDividendo = activeFii.dividendos_recentes[activeFii.dividendos_recentes.length - 1];
+    
+    // Provento mensal estimado
+    const proventoMensal = cotas * ultimoDividendo;
+    calcResultMensal.innerText = `R$ ${proventoMensal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    
+    // Yield on Cost (YOC) Anualizado
+    // Fórmula: (Provento Anual por Cota / Preço de Custo) * 100
+    if (custoMedio > 0) {
+      const yocAnual = ((ultimoDividendo * 12) / custoMedio) * 100;
+      calcResultYoc.innerText = `${yocAnual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+    } else {
+      calcResultYoc.innerText = '0,00%';
+    }
   }
 
   // Renderiza o Gráfico de Dividendos com base nas cores do Fundo
