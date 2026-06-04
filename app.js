@@ -162,32 +162,32 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <span class="badge-type">${fii.tipo.split(' ')[0]}</span>
       </div>
-      <div class="card-info-row" style="align-items: flex-start;">
-        <div class="info-item">
+      <div class="card-info-row" style="align-items: flex-start; gap: 0.75rem;">
+        <div class="info-item" style="flex: 1; min-width: 95px;">
           <span class="info-label">Preço</span>
-          <span class="info-value" style="font-size: 1.05rem;">${fii.preco}</span>
+          <span class="info-value" style="font-size: 1.15rem; font-weight: 700; margin-top: 0.2rem; display: block;">${fii.preco}</span>
         </div>
-        <div class="info-item" style="flex: 1.3;">
-          <span class="info-label">Tendências</span>
-          <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.2rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; font-size: 0.8rem;">
-              <span style="color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase;">Preço:</span>
-              <div class="tendencia-wrapper ${trendPreco.trendClass}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
+        <div class="info-item" style="flex: 1.4; padding-left: 0.75rem; border-left: 1px solid rgba(255, 255, 255, 0.05);">
+          <span class="info-label" style="display: block; margin-bottom: 0.15rem;">Tendências</span>
+          <div style="display: flex; flex-direction: column; gap: 0.3rem; width: 100%;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; width: 100%;">
+              <span style="color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; font-weight: 500;">Preço:</span>
+              <div class="tendencia-wrapper ${trendPreco.trendClass}" style="display: inline-flex; align-items: center; gap: 0.15rem;">
                 <span class="trend-arrow" style="display: inline-flex;">${trendPreco.icon}</span>
-                <span class="info-value" style="font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">${fii.tendencia_preco}</span>
+                <span style="font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">${fii.tendencia_preco}</span>
               </div>
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; font-size: 0.8rem;">
-              <span style="color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase;">Divs:</span>
-              <div class="tendencia-wrapper ${trendDivs.trendClass}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; width: 100%;">
+              <span style="color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; font-weight: 500;">Divs:</span>
+              <div class="tendencia-wrapper ${trendDivs.trendClass}" style="display: inline-flex; align-items: center; gap: 0.15rem;">
                 <span class="trend-arrow" style="display: inline-flex;">${trendDivs.icon}</span>
-                <span class="info-value" style="font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">${fii.tendencia_dividendos === 'aumentar' ? 'Subir' : fii.tendencia_dividendos}</span>
+                <span style="font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">${fii.tendencia_dividendos === 'aumentar' ? 'Subir' : fii.tendencia_dividendos}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.02);">
         <span class="badge-status ${fii.recomendacao.toLowerCase()}">
           <span style="width: 6px; height: 6px; background-color: currentColor; border-radius: 50%;"></span>
           ${fii.recomendacao}
