@@ -32,6 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const walletMonthlyIncome = document.getElementById('wallet-monthly-income');
   const walletAverageYoc = document.getElementById('wallet-average-yoc');
   
+  // Elementos de Meta e Backup da Carteira
+  const walletTargetInput = document.getElementById('wallet-target-input');
+  const walletProgressBar = document.getElementById('wallet-progress-bar');
+  const walletProgressPercent = document.getElementById('wallet-progress-percent');
+  const btnExportWallet = document.getElementById('btn-export-wallet');
+  const btnImportTrigger = document.getElementById('btn-import-trigger');
+  const walletImportInput = document.getElementById('wallet-import-input');
+  
   // Elementos Adicionais do Comparador
   const compareFloatingBar = document.getElementById('compare-floating-bar');
   const compareBarText = document.getElementById('compare-bar-text');
@@ -53,7 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Variáveis de Estado Novas
   let activeSort = 'alfabetica';
   let myWallet = JSON.parse(localStorage.getItem('my_wallet_data')) || {};
+  let myWalletTarget = parseFloat(localStorage.getItem('my_wallet_target')) || 500.00;
   let selectedForCompare = []; // tickers selecionados para comparador
+  
+  // Instâncias dos novos gráficos
+  let walletDonutChartInstance = null;
+  let compareChartInstance = null;
   
   // Elementos do Simulador
   const calcCotas = document.getElementById('calc-cotas');
@@ -113,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Eventos da Carteira ---
   btnMyWallet.addEventListener('click', () => {
+    walletTargetInput.value = myWalletTarget;
     renderWalletTable();
     walletModal.classList.add('open');
   });
@@ -147,9 +161,69 @@ document.addEventListener('DOMContentLoaded', () => {
     
     myWallet = newWallet;
     localStorage.setItem('my_wallet_data', JSON.stringify(myWallet));
+    
+    // Salva a meta de proventos
+    const targetVal = parseFloat(walletTargetInput.value) || 0;
+    if (targetVal > 0) {
+      myWalletTarget = targetVal;
+      localStorage.setItem('my_wallet_target', myWalletTarget);
+    }
+    
     alert('Sua carteira de investimentos foi salva com sucesso no navegador!');
     walletModal.classList.remove('open');
     renderCards();
+  });
+
+  // --- Eventos de Backup da Carteira ---
+  btnExportWallet.addEventListener('click', () => {
+    const backupData = {
+      wallet: myWallet,
+      target: myWalletTarget
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "fii_explorer_carteira_backup.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  });
+  
+  btnImportTrigger.addEventListener('click', () => {
+    walletImportInput.click();
+  });
+  
+  walletImportInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        const imported = JSON.parse(event.target.result);
+        if (imported && (imported.wallet || imported.target)) {
+          if (imported.wallet) {
+            myWallet = imported.wallet;
+            localStorage.setItem('my_wallet_data', JSON.stringify(myWallet));
+          }
+          if (imported.target) {
+            myWalletTarget = parseFloat(imported.target) || 500.00;
+            localStorage.setItem('my_wallet_target', myWalletTarget);
+            walletTargetInput.value = myWalletTarget;
+          }
+          alert('Carteira importada e atualizada com sucesso!');
+          renderWalletTable();
+          renderCards();
+        } else {
+          alert('Formato de arquivo inválido. Verifique se o arquivo JSON de backup está correto.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao processar o arquivo JSON de backup.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   });
 
   // --- Eventos do Comparador ---
@@ -218,6 +292,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     compareModal.classList.add('open');
+    const fallbackLabels = getFallbackLabels();
+    loadCompareChart(ticker1, ticker2, fii1.recomendacao, fii2.recomendacao, fallbackLabels);
   });
 
   closeCompareModalBtn.addEventListener('click', () => {
@@ -1111,6 +1187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateCalculations = () => {
       let totalPortfolioInvested = 0;
       let totalPortfolioMonthlyIncome = 0;
+      const sectorMap = {};
       
       tickers.forEach(ticker => {
         const fii = fiisData[ticker];
@@ -1134,6 +1211,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cotas > 0) {
           totalPortfolioInvested += rowTotal;
           totalPortfolioMonthlyIncome += rowIncome;
+          
+          const sector = fii.tipo.split(' ')[0];
+          sectorMap[sector] = (sectorMap[sector] || 0) + rowTotal;
         }
       });
       
@@ -1146,11 +1226,269 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         walletAverageYoc.innerText = '0,00%';
       }
+      
+      // Atualiza Barra de Progresso da Meta
+      const targetVal = parseFloat(walletTargetInput.value) || 0;
+      if (targetVal > 0) {
+        const percent = Math.min(100, (totalPortfolioMonthlyIncome / targetVal) * 100);
+        walletProgressPercent.innerText = `${percent.toFixed(1)}%`;
+        walletProgressBar.style.width = `${percent}%`;
+      } else {
+        walletProgressPercent.innerText = '0%';
+        walletProgressBar.style.width = '0%';
+      }
+      
+      // Atualiza Gráfico de Rosca
+      updateDonutChart(sectorMap);
     };
     
     cotasInputs.forEach(input => input.addEventListener('input', updateCalculations));
     custoInputs.forEach(input => input.addEventListener('input', updateCalculations));
+    walletTargetInput.addEventListener('input', updateCalculations);
     
     updateCalculations();
+  }
+
+  // --- Função Auxiliar de Renderização do Donut Chart ---
+  function updateDonutChart(sectorMap) {
+    const canvas = document.getElementById('walletDonutChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    const labels = Object.keys(sectorMap);
+    const dataValues = Object.values(sectorMap);
+    
+    if (labels.length === 0) {
+      labels.push("Sem ativos");
+      dataValues.push(1);
+    }
+    
+    const colors = [
+      '#10b981', // Verde
+      '#3b82f6', // Azul
+      '#8b5cf6', // Roxo
+      '#f59e0b', // Laranja
+      '#f43f5e', // Rosa/Vermelho
+      '#64748b'  // Cinza (para Vazio)
+    ];
+    
+    const borderColors = labels[0] === "Sem ativos" ? ['rgba(255,255,255,0.05)'] : colors.map(c => '#080b10');
+    const bgColors = labels[0] === "Sem ativos" ? ['rgba(255,255,255,0.03)'] : colors;
+    
+    if (walletDonutChartInstance) {
+      walletDonutChartInstance.destroy();
+    }
+    
+    walletDonutChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: dataValues,
+          backgroundColor: bgColors,
+          borderColor: borderColors,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+          legend: {
+            display: labels[0] !== "Sem ativos",
+            position: 'bottom',
+            labels: {
+              color: '#94a3b8',
+              boxWidth: 8,
+              font: { family: 'Outfit', size: 9 }
+            }
+          },
+          tooltip: {
+            enabled: labels[0] !== "Sem ativos",
+            backgroundColor: '#10141d',
+            titleFont: { family: 'Outfit', size: 11 },
+            bodyFont: { family: 'Outfit', size: 11 },
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // --- Função Auxiliar do Comparador - Histórico ---
+  async function loadCompareChart(ticker1, ticker2, recom1, recom2, fallbackLabels) {
+    let divs1 = [...fiisData[ticker1].dividendos_recentes];
+    let divs2 = [...fiisData[ticker2].dividendos_recentes];
+    let labels = fallbackLabels;
+    
+    renderCompareChart(ticker1, ticker2, recom1, recom2, divs1, divs2, labels);
+    
+    try {
+      const getDivs = async (ticker) => {
+        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA?events=div&range=1y`;
+        const data = await fetchWithCORS(targetUrl);
+        if (data && data.chart && data.chart.result && data.chart.result[0]) {
+          const events = data.chart.result[0].events;
+          if (events && events.dividends) {
+            const dividendsObj = events.dividends;
+            const divList = [];
+            for (const key in dividendsObj) {
+              divList.push({
+                date: dividendsObj[key].date,
+                amount: dividendsObj[key].amount
+              });
+            }
+            if (divList.length > 0) {
+              divList.sort((a, b) => a.date - b.date);
+              return divList.slice(-6);
+            }
+          }
+        }
+        return null;
+      };
+      
+      const [res1, res2] = await Promise.allSettled([getDivs(ticker1), getDivs(ticker2)]);
+      
+      let gotRealData = false;
+      let newDivs1 = divs1;
+      let newDivs2 = divs2;
+      let newLabels = labels;
+      
+      if (res1.status === 'fulfilled' && res1.value) {
+        newDivs1 = res1.value.map(d => d.amount);
+        newLabels = res1.value.map(d => {
+          const dateObj = new Date(d.date * 1000);
+          const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+          return `${meses[dateObj.getUTCMonth()]}/${String(dateObj.getUTCFullYear()).slice(-2)}`;
+        });
+        gotRealData = true;
+      }
+      
+      if (res2.status === 'fulfilled' && res2.value) {
+        newDivs2 = res2.value.map(d => d.amount);
+        if (!gotRealData) {
+          newLabels = res2.value.map(d => {
+            const dateObj = new Date(d.date * 1000);
+            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            return `${meses[dateObj.getUTCMonth()]}/${String(dateObj.getUTCFullYear()).slice(-2)}`;
+          });
+        }
+        gotRealData = true;
+      }
+      
+      if (gotRealData) {
+        renderCompareChart(ticker1, ticker2, recom1, recom2, newDivs1, newDivs2, newLabels);
+      }
+    } catch (e) {
+      console.warn("Erro ao buscar histórico comparativo de proventos:", e);
+    }
+  }
+
+  function renderCompareChart(ticker1, ticker2, recom1, recom2, values1, values2, labels) {
+    if (compareChartInstance) {
+      compareChartInstance.destroy();
+    }
+    
+    const ctx = document.getElementById('compareChart').getContext('2d');
+    
+    let color1 = '#10b981';
+    if (recom1 === 'Manter') color1 = '#3b82f6';
+    if (recom1 === 'Vender') color1 = '#f43f5e';
+    
+    let color2 = '#3b82f6';
+    if (recom2 === 'Comprar') color2 = '#10b981';
+    if (recom2 === 'Vender') color2 = '#f43f5e';
+    
+    if (color1 === color2) {
+      color2 = '#8b5cf6';
+    }
+    
+    compareChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: ticker1,
+            data: values1,
+            borderColor: color1,
+            borderWidth: 2,
+            backgroundColor: 'transparent',
+            pointBackgroundColor: color1,
+            pointBorderColor: '#080b10',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            tension: 0.35
+          },
+          {
+            label: ticker2,
+            data: values2,
+            borderColor: color2,
+            borderWidth: 2,
+            backgroundColor: 'transparent',
+            pointBackgroundColor: color2,
+            pointBorderColor: '#080b10',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            tension: 0.35
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            labels: {
+              color: '#94a3b8',
+              font: { family: 'Outfit', size: 12 }
+            }
+          },
+          tooltip: {
+            backgroundColor: '#10141d',
+            titleFont: { family: 'Outfit', size: 12 },
+            bodyFont: { family: 'Outfit', size: 12 },
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: R$ ${context.parsed.y.toFixed(2)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: '#64748b',
+              font: { family: 'Outfit', size: 11 }
+            }
+          },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.03)' },
+            ticks: {
+              color: '#64748b',
+              font: { family: 'Outfit', size: 11 },
+              callback: function(value) {
+                return `R$ ${value.toFixed(2)}`;
+              }
+            }
+          }
+        }
+      }
+    });
   }
 });

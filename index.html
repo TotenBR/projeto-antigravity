@@ -247,50 +247,92 @@
 
   <!-- Modal Minha Carteira -->
   <div id="wallet-modal" class="custom-modal">
-    <div class="modal-content glassmorphism">
+    <div class="modal-content glassmorphism" style="max-width: 950px;">
       <div class="modal-header">
         <h2>📊 Minha Carteira de Investimentos</h2>
         <button class="close-modal-btn" id="close-wallet-modal">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="wallet-summary-cards">
-          <div class="summary-card">
-            <span class="card-label">Total Investido</span>
-            <span class="card-value" id="wallet-total-invested">R$ 0,00</span>
+        
+        <div class="wallet-modal-layout" style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
+          
+          <!-- Coluna Esquerda: Resumo, Meta e Gráfico -->
+          <div class="wallet-sidebar-panel" style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 1rem;">
+            <div class="wallet-summary-cards" style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
+              <div class="summary-card">
+                <span class="card-label">Total Investido</span>
+                <span class="card-value" id="wallet-total-invested">R$ 0,00</span>
+              </div>
+              <div class="summary-card">
+                <span class="card-label">Proventos Mensais Est.</span>
+                <span class="card-value highlight-buy" id="wallet-monthly-income">R$ 0,00</span>
+              </div>
+              <div class="summary-card">
+                <span class="card-label">Yield on Cost (YOC) Médio</span>
+                <span class="card-value highlight-yoc" id="wallet-average-yoc">0,00%</span>
+              </div>
+            </div>
+            
+            <!-- Meta de Proventos -->
+            <div class="wallet-meta-container" style="display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+              <label for="wallet-target-input" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Meta de Proventos Mensal (R$)</label>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">R$</span>
+                <input type="number" id="wallet-target-input" class="wallet-input" style="max-width: 150px;" placeholder="Ex: 500.00" value="500">
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem;">
+                <span style="color: var(--text-muted);">Progresso da Meta</span>
+                <span id="wallet-progress-percent" class="highlight-buy">0%</span>
+              </div>
+              <div class="progress-bar-bg" style="width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.03);">
+                <div id="wallet-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--color-hold), var(--color-buy)); border-radius: 4px; transition: width 0.4s ease;"></div>
+              </div>
+            </div>
+            
+            <!-- Donut Chart Container -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; align-self: flex-start;">Distribuição por Segmento</span>
+              <div style="width: 100%; max-width: 180px; height: 180px; position: relative; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center;">
+                <canvas id="walletDonutChart"></canvas>
+              </div>
+            </div>
           </div>
-          <div class="summary-card">
-            <span class="card-label">Proventos Mensais Est.</span>
-            <span class="card-value highlight-buy" id="wallet-monthly-income">R$ 0,00</span>
+          
+          <!-- Coluna Direita: Tabela -->
+          <div class="wallet-table-panel" style="flex: 1.8; min-width: 450px; display: flex; flex-direction: column; gap: 1rem;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.25rem;">
+              Insira a quantidade de cotas e o preço médio pago para cada um dos ativos abaixo. Os dados são salvos localmente e os rendimentos estimam o último provento pago.
+            </p>
+            
+            <div class="wallet-table-container" style="max-height: 480px; overflow-y: auto;">
+              <table class="wallet-table">
+                <thead>
+                  <tr>
+                    <th>Fundo</th>
+                    <th>Preço Atual</th>
+                    <th style="width: 90px;">Qtd. Cotas</th>
+                    <th style="width: 110px;">Custo Médio (R$)</th>
+                    <th>Rendimento</th>
+                    <th>Total Aplicado</th>
+                  </tr>
+                </thead>
+                <tbody id="wallet-table-body">
+                  <!-- Linhas geradas dinamicamente -->
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="summary-card">
-            <span class="card-label">Yield on Cost (YOC) Médio</span>
-            <span class="card-value highlight-yoc" id="wallet-average-yoc">0,00%</span>
-          </div>
+          
         </div>
         
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">
-          Insira a quantidade de cotas e o preço médio pago para cada um dos ativos abaixo. Os dados são salvos localmente e os rendimentos estimam o último provento pago.
-        </p>
-
-        <div class="wallet-table-container">
-          <table class="wallet-table">
-            <thead>
-              <tr>
-                <th>Fundo</th>
-                <th>Preço Atual</th>
-                <th style="width: 100px;">Qtd. Cotas</th>
-                <th style="width: 120px;">Custo Médio (R$)</th>
-                <th>Rendimento Mensal</th>
-                <th>Total Aplicado</th>
-              </tr>
-            </thead>
-            <tbody id="wallet-table-body">
-              <!-- Linhas geradas dinamicamente -->
-            </tbody>
-          </table>
-        </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="wallet-backup-actions" style="display: flex; gap: 0.5rem;">
+          <button id="btn-export-wallet" class="wallet-btn" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color);" title="Exportar backup em formato JSON">📥 Exportar Backup</button>
+          <button id="btn-import-trigger" class="wallet-btn" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color);" title="Importar backup de carteira em JSON">📤 Importar Backup</button>
+          <input type="file" id="wallet-import-input" accept=".json" style="display: none;">
+        </div>
         <button id="btn-save-wallet" class="save-btn">Salvar Carteira</button>
       </div>
     </div>
@@ -315,7 +357,7 @@
         <h2>⚖️ Comparador de Ativos Lado a Lado</h2>
         <button class="close-modal-btn" id="close-compare-modal">&times;</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.25rem;">
         <div class="compare-table-container">
           <table class="compare-table">
             <thead>
@@ -329,6 +371,17 @@
               <!-- Preenchido pelo Javascript -->
             </tbody>
           </table>
+        </div>
+        
+        <!-- Comparativo de Proventos Chart -->
+        <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.2rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <h3 style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            Histórico Comparativo de Dividendos (Últimos 6 Meses)
+          </h3>
+          <div style="width: 100%; height: 220px; position: relative;">
+            <canvas id="compareChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
