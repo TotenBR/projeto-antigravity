@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Elementos do Simulador
   const calcCotas = document.getElementById('calc-cotas');
   const calcCusto = document.getElementById('calc-custo');
+  const calcResultTotal = document.getElementById('calc-result-total');
   const calcResultMensal = document.getElementById('calc-result-mensal');
   const calcResultYoc = document.getElementById('calc-result-yoc');
 
@@ -251,6 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const cotas = parseInt(calcCotas.value) || 0;
     const custoMedio = parseFloat(calcCusto.value) || 0;
+    
+    // Custo Total / Total Investido
+    const custoTotal = cotas * custoMedio;
+    calcResultTotal.innerText = `R$ ${custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     
     // Obtém o dividendo mais recente (último item do array dividendos_recentes)
     const ultimoDividendo = activeFii.dividendos_recentes[activeFii.dividendos_recentes.length - 1];
