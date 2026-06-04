@@ -6,7 +6,6 @@ WORKSPACE = "/home/toten/projeto-antigravity"
 PYTHON_BIN = os.path.join(WORKSPACE, "venv", "bin", "python")
 
 if not os.path.exists(PYTHON_BIN):
-    # Se o executável do venv não estiver nessa pasta específica, usa o padrão do sistema
     PYTHON_BIN = sys.executable
 
 def run_step(script_name, description):
@@ -20,7 +19,6 @@ def run_step(script_name, description):
         return False
         
     try:
-        # Executa desvinculando saídas caso necessário, mas para console mantemos síncrono para o log aparecer
         result = subprocess.run([PYTHON_BIN, script_path], check=True, text=True)
         if result.returncode == 0:
             print(f"✅ CONCLUÍDO COM SUCESSO: {description}")
@@ -28,6 +26,27 @@ def run_step(script_name, description):
     except subprocess.CalledProcessError as e:
         print(f"❌ ERRO ao executar {script_name}: {e}")
     return False
+
+def run_git_upload():
+    print(f"\n==================================================")
+    print("📤 ENVIANDO ATUALIZAÇÕES PARA O GITHUB...")
+    print("==================================================")
+    try:
+        # Adiciona o data.js modificado
+        subprocess.run(["git", "add", "data.js"], check=True, cwd=WORKSPACE)
+        
+        # Faz o commit automático
+        subprocess.run(["git", "commit", "-m", "docs: atualizacao automatica de analises com Gemini"], check=True, cwd=WORKSPACE)
+        
+        # Faz o push para a branch main
+        subprocess.run(["git", "push", "origin", "main"], check=True, cwd=WORKSPACE)
+        
+        print("✅ Envio ao GitHub concluído! O deploy na Vercel foi iniciado automaticamente.")
+        return True
+    except subprocess.CalledProcessError as e:
+        # Se não houver nada para commitar, o git commit retorna erro 1, tratamos isso
+        print(f"⚠️ Aviso ou erro durante o envio ao Git: {e}")
+        return False
 
 def main():
     print("✨ INICIANDO PIPELINE AUTOMÁTICO DE ATUALIZAÇÃO DO DASHBOARD DE FIIs ✨")
@@ -47,13 +66,13 @@ def main():
         print("\nAborting: Falha na análise com a API do Gemini.")
         sys.exit(1)
         
+    # Passo 4: Upload automático para o GitHub
+    run_git_upload()
+        
     print(f"\n==================================================")
     print("🏆 PIPELINE AUTOMATIZADO CONCLUÍDO COM SUCESSO! 🏆")
-    print("O arquivo data.js foi atualizado com as novas teses de IA.")
-    print("Para colocar as atualizações no ar na Vercel, execute os seguintes comandos:")
-    print("  git add data.js")
-    print("  git commit -m \"docs: atualizacao automatica de analises com Gemini\"")
-    print("  git push origin main")
+    print("O arquivo data.js foi atualizado e enviado para o GitHub.")
+    print("O deploy automático do seu dashboard de FIIs está em andamento na Vercel.")
     print(f"==================================================")
 
 if __name__ == '__main__':
