@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Meta Tags -->
+  <title>FII Explorer | Dashboard Interativo de FIIs, FIAGROs e FI-Infras</title>
+  <meta name="description" content="Acompanhe de forma simples e visual as análises, riscos, cautelas e tendências de dividendos dos principais Fundos Imobiliários e Fiagros do mercado brasileiro.">
+  <meta name="author" content="TotenBR">
+  
+  <!-- Estilos Globais -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Cabeçalho Principal -->
+    <header>
+      <div class="logo-section">
+        <div class="logo-icon">F</div>
+        <div class="logo-text">
+          <h1>FII Explorer</h1>
+          <span>Painel Analítico de Proventos e Riscos</span>
+        </div>
+      </div>
+      
+      <!-- Informações do Sistema -->
+      <div style="font-size: 0.8rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.5rem;">
+        <span style="width: 8px; height: 8px; background-color: var(--color-buy); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--color-buy);"></span>
+        <span>Conectado</span>
+      </div>
+    </header>
+
+    <!-- Barra de Filtros e Busca -->
+    <section class="filter-bar">
+      <!-- Categoria -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.05em;">Filtrar por Segmento</span>
+        <div class="filter-group" id="filter-category-group">
+          <button class="filter-btn active" data-filter-cat="todos">Todos</button>
+          <button class="filter-btn" data-filter-cat="tijolo">Tijolo</button>
+          <button class="filter-btn" data-filter-cat="papel">Papel/CRI</button>
+          <button class="filter-btn" data-filter-cat="fiagro">Fiagro</button>
+          <button class="filter-btn" data-filter-cat="fi-infra">FI-Infra</button>
+        </div>
+      </div>
+
+      <!-- Recomendação -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.05em;">Recomendação</span>
+        <div class="filter-group" id="filter-recom-group">
+          <button class="filter-btn active" data-filter-recom="todos">Todas</button>
+          <button class="filter-btn" data-filter-recom="comprar">Comprar</button>
+          <button class="filter-btn" data-filter-recom="manter">Manter</button>
+        </div>
+      </div>
+
+      <!-- Busca -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.05em;">Pesquisa</span>
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="search-input" class="search-input" placeholder="Buscar por ticker ou nome...">
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid de Ativos Principal -->
+    <main>
+      <div id="cards-grid" class="cards-grid">
+        <!-- Injetado via Javascript -->
+      </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer>
+      <p>&copy; 2026 FII Explorer. Todos os direitos reservados. Feito com tecnologia Antigravity.</p>
+    </footer>
+
+  </div>
+
+  <!-- Overlay para fechar sidebar clicando fora -->
+  <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+  <!-- Sidebar Lateral de Detalhes -->
+  <aside id="details-sidebar" class="details-sidebar" aria-label="Detalhes do Ativo">
+    <div class="sidebar-header">
+      <div style="display: flex; flex-direction: column;">
+        <h2 id="det-ticker" style="font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;">-</h2>
+        <span id="det-nome" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">-</span>
+      </div>
+      <button id="close-sidebar" class="close-btn" aria-label="Fechar painel">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="sidebar-content">
+      
+      <!-- Detalhes Rápidos -->
+      <div class="detail-meta-grid">
+        <div class="info-item">
+          <span class="info-label">Preço Atual</span>
+          <span class="info-value" id="det-preco" style="font-size: 1.1rem; font-weight: 700;">-</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Recomendação</span>
+          <div style="margin-top: 0.15rem;">
+            <span id="det-recom" class="badge-status">-</span>
+          </div>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Risco do Fundo</span>
+          <span class="info-value" id="det-alerta" style="font-size: 1.1rem; font-weight: 700;">-</span>
+        </div>
+      </div>
+
+      <!-- Segmento & Tipo -->
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="badge-type" id="det-tipo" style="background: rgba(255,255,255,0.06); font-size: 0.75rem; padding: 0.35rem 0.85rem;">-</span>
+        <div style="display: flex; align-items: center; gap: 0.35rem; background: rgba(255,255,255,0.02); padding: 0.35rem 0.85rem; border-radius: 50px; border: 1px solid var(--border-color);">
+          <span id="det-trend-icon"></span>
+          <span id="det-trend-text" style="font-size: 0.75rem; font-weight: 600;">-</span>
+        </div>
+      </div>
+
+      <!-- Gráfico de Dividendos Recentes -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <h3 class="detail-block-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          Histórico de Proventos (Últimos 6 Meses)
+        </h3>
+        <div class="chart-container">
+          <canvas id="proventosChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Tese de Investimentos -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <h3 class="detail-block-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          Tese & Visão Geral
+        </h3>
+        <div class="detail-text-card" id="det-explicacao">
+          -
+        </div>
+      </div>
+
+      <!-- Boas Notícias -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <h3 class="detail-block-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Boas Notícias & Catalisadores
+        </h3>
+        <div class="detail-text-card success-border" id="det-boasnoticias">
+          -
+        </div>
+      </div>
+
+      <!-- Pontos Críticos e Alertas -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <h3 class="detail-block-title critical">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          Pontos Críticos & Fatores de Cautela
+        </h3>
+        <div class="detail-text-card critical-border" id="det-critico">
+          -
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- Bibliotecas externas e Scripts locais -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
