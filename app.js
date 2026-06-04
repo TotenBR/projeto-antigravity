@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicializa o Renderizador
   renderCards();
 
+  // Busca e atualiza preços em tempo real em segundo plano
+  updatePricesRealTime();
+
   // Escuta os Filtros de Categoria
   const catButtons = document.querySelectorAll('[data-filter-cat]');
   catButtons.forEach(btn => {
@@ -363,5 +366,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+  }
+
+  // Busca as cotações em tempo real da B3 via API do Yahoo e proxy CORS
+  async function updatePricesRealTime() {
+    const tickers = Object.keys(fiisData);
+    
+    // Dispara as consultas em paralelo para todos os tickers
+    const promises = tickers.map(async (ticker) => {
+      const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA`)}`;
+      
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return;
+        const data = await response.json();
+        
+        if (data && data.chart && data.chart.result && data.chart.result[0]) {
+          const price = data.chart.result[0].meta.regularMarketPrice;
+          if (price) {
+            fiisData[ticker].preco = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        }
+      } catch (e) {
+        console.warn(`Erro ao buscar cotação de ${ticker}:`, e);
+      }
+    });
+
+    try {
+      await Promise.all(promises);
+      
+      // Renderiza novamente os cards com os preços reais atualizados
+      renderCards();
+      
+      // Se o modal lateral estiver aberto, atualiza o preço e o simulador na tela
+      if (activeFii && fiisData[activeFii.ticker]) {
+        detPreco.innerText = fiisData[activeFii.ticker].preco;
+        const precoLimpo = parseFloat(fiisData[activeFii.ticker].preco.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 100;
+        calcCusto.value = precoLimpo;
+        updateSimulation();
+      }
+    } catch (err) {
+      console.error('Erro na atualização em lote de cotações:', err);
+    }
   }
 });
