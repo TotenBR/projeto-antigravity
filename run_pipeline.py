@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import subprocess
 
 WORKSPACE = "/home/toten/projeto-antigravity"
@@ -48,6 +49,26 @@ def run_git_upload():
         print(f"⚠️ Aviso ou erro durante o envio ao Git: {e}")
         return False
 
+def cleanup_temp():
+    temp_dir = os.path.join(WORKSPACE, ".temp")
+    if os.path.exists(temp_dir):
+        print(f"\n==================================================")
+        print("🧹 LIMPANDO ARQUIVOS TEMPORÁRIOS...")
+        print("==================================================")
+        try:
+            for filename in os.listdir(temp_dir):
+                file_path = os.path.join(temp_dir, filename)
+                try:
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    print(f"Não foi possível deletar {file_path}: {e}")
+            print("✅ Pasta temporária limpa com sucesso! Nenhum PDF ou lixo acumulado.")
+        except Exception as e:
+            print(f"⚠️ Erro ao limpar pasta temporária: {e}")
+
 def main():
     print("✨ INICIANDO PIPELINE AUTOMÁTICO DE ATUALIZAÇÃO DO DASHBOARD DE FIIs ✨")
     
@@ -68,6 +89,9 @@ def main():
         
     # Passo 4: Upload automático para o GitHub
     run_git_upload()
+    
+    # Passo 5: Limpeza de PDFs temporários baixados
+    cleanup_temp()
         
     print(f"\n==================================================")
     print("🏆 PIPELINE AUTOMATIZADO CONCLUÍDO COM SUCESSO! 🏆")
