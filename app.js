@@ -33,11 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const calcResultMensal = document.getElementById('calc-result-mensal');
   const calcResultYoc = document.getElementById('calc-result-yoc');
 
-  // Inicializa o Renderizador
-  renderCards();
+  // URL da Planilha do Google Sheets publicada como CSV (Ideia 2)
+  // Substitua pela sua URL pública do Sheets (ex: https://docs.google.com/spreadsheets/d/.../pub?output=csv)
+  const GOOGLE_SHEETS_CSV_URL = '';
 
-  // Busca e atualiza preços em tempo real em segundo plano
-  updatePricesRealTime();
+  // Inicializa o Dashboard
+  initializeData();
 
   // Escuta os Filtros de Categoria
   const catButtons = document.querySelectorAll('[data-filter-cat]');
@@ -318,6 +319,162 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     throw lastError || new Error(`Todos os proxies CORS falharam para URL: ${targetUrl}`);
+  }
+
+  // Função auxiliar para obter texto bruto (como CSV) usando proxies CORS
+  async function fetchTextWithCORS(targetUrl) {
+    const proxies = [
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      url => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`
+    ];
+
+    let lastError = null;
+    for (let i = 0; i < proxies.length; i++) {
+      const proxyUrl = proxies[i](targetUrl);
+      try {
+        const response = await fetch(proxyUrl);
+        if (response.ok) {
+          return await response.text();
+        }
+      } catch (e) {
+        console.warn(`Proxy CORS #${i + 1} (Texto) falhou para URL: ${targetUrl}. Tentando o próximo...`);
+        lastError = e;
+      }
+    }
+    throw lastError || new Error(`Todos os proxies CORS falharam para obter texto da URL: ${targetUrl}`);
+  }
+
+  // Parseador de CSV compatível com RFC 4180 (trata campos com aspas e quebras de linha de forma correta)
+  function parseCSV(csvText) {
+    const lines = [];
+    let row = [""];
+    let insideQuote = false;
+
+    for (let i = 0; i < csvText.length; i++) {
+      const char = csvText[i];
+      const nextChar = csvText[i + 1];
+
+      if (char === '"') {
+        if (insideQuote && nextChar === '"') {
+          row[row.length - 1] += '"';
+          i++;
+        } else {
+          insideQuote = !insideQuote;
+        }
+      } else if (char === ',' && !insideQuote) {
+        row.push("");
+      } else if ((char === '\r' || char === '\n') && !insideQuote) {
+        if (char === '\r' && nextChar === '\n') {
+          i++;
+        }
+        lines.push(row);
+        row = [""];
+      } else {
+        row[row.length - 1] += char;
+      }
+    }
+    
+    if (row.length > 1 || row[0] !== "") {
+      lines.push(row);
+    }
+    return lines;
+  }
+
+  // Mapeia o CSV parseado para a estrutura de dados global do dashboard
+  function loadDataFromSheets(csvText) {
+    const rows = parseCSV(csvText);
+    if (rows.length < 2) return;
+
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    
+    const idxTicker = headers.indexOf('ticker');
+    const idxNome = headers.indexOf('nome');
+    const idxTipo = headers.indexOf('tipo');
+    const idxRecom = headers.indexOf('recomendacao');
+    const idxAlerta = headers.indexOf('alerta');
+    const idxExplicacoes = headers.indexOf('explicacoes');
+    const idxCriticos = headers.indexOf('pontos criticos');
+    const idxBoas = headers.indexOf('boas noticias');
+    const idxTrendPreco = headers.indexOf('tendencia preco');
+    const idxTrendDivs = headers.indexOf('tendencia dividendos');
+    const idxDivsRecentes = headers.indexOf('dividendos recentes');
+
+    if (idxTicker === -1) {
+      console.error("Erro: Coluna 'Ticker' não encontrada no cabeçalho da planilha Google Sheets!");
+      return;
+    }
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const ticker = row[idxTicker]?.trim().toUpperCase();
+      if (!ticker) continue;
+
+      // Cria a estrutura caso o ticker seja novo
+      if (!fiisData[ticker]) {
+        fiisData[ticker] = { ticker };
+      }
+
+      if (idxNome !== -1 && row[idxNome]) fiisData[ticker].nome = row[idxNome].trim();
+      if (idxTipo !== -1 && row[idxTipo]) fiisData[ticker].tipo = row[idxTipo].trim();
+      if (idxRecom !== -1 && row[idxRecom]) fiisData[ticker].recomendacao = row[idxRecom].trim();
+      if (idxAlerta !== -1 && row[idxAlerta]) fiisData[ticker].alerta = parseInt(row[idxAlerta].trim()) || 0;
+      if (idxExplicacoes !== -1 && row[idxExplicacoes]) fiisData[ticker].explicacoes = row[idxExplicacoes].trim();
+      if (idxCriticos !== -1 && row[idxCriticos]) fiisData[ticker].pontos_criticos = row[idxCriticos].trim();
+      if (idxBoas !== -1 && row[idxBoas]) fiisData[ticker].boas_noticias = row[idxBoas].trim();
+      
+      if (idxTrendPreco !== -1 && row[idxTrendPreco]) {
+        fiisData[ticker].tendencia_preco = row[idxTrendPreco].trim().toLowerCase();
+      }
+      if (idxTrendDivs !== -1 && row[idxTrendDivs]) {
+        fiisData[ticker].tendencia_dividendos = row[idxTrendDivs].trim().toLowerCase();
+      }
+      
+      if (idxDivsRecentes !== -1 && row[idxDivsRecentes]) {
+        const divs = row[idxDivsRecentes].split(',')
+          .map(v => parseFloat(v.trim()))
+          .filter(v => !isNaN(v));
+        if (divs.length > 0) {
+          fiisData[ticker].dividendos_recentes = divs;
+        }
+      }
+    }
+  }
+
+  // Inicialização assíncrona com suporte e fallback para Google Sheets
+  async function initializeData() {
+    if (GOOGLE_SHEETS_CSV_URL) {
+      try {
+        console.log("Carregando dados da planilha do Google Sheets...");
+        let csvText = '';
+        try {
+          const res = await fetch(GOOGLE_SHEETS_CSV_URL);
+          if (res.ok) {
+            csvText = await res.text();
+          } else {
+            throw new Error("Erro status " + res.status);
+          }
+        } catch (errDirect) {
+          console.warn("Fetch direto falhou. Tentando obter planilha via proxy CORS...", errDirect);
+          csvText = await fetchTextWithCORS(GOOGLE_SHEETS_CSV_URL);
+        }
+
+        if (csvText) {
+          loadDataFromSheets(csvText);
+          console.log("Dados do Google Sheets integrados e sincronizados com sucesso!");
+        }
+      } catch (e) {
+        console.error("Falha ao carregar dados do Google Sheets. Usando base local (data.js) de backup.", e);
+      }
+    } else {
+      console.log("Nenhuma URL do Google Sheets fornecida. Usando base de dados local padrão (data.js).");
+    }
+    
+    // Renderiza a grade de cards com as informações correntes
+    renderCards();
+    
+    // Busca atualizações de preços em tempo real
+    updatePricesRealTime();
   }
 
   // Gera labels de data retroativa para fallbacks (últimos 6 meses baseados na data atual)
