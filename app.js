@@ -17,12 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const detBoasNoticias = document.getElementById('det-boasnoticias');
   const detTrendIcon = document.getElementById('det-trend-icon');
   const detTrendText = document.getElementById('det-trend-text');
+  const detNoticias = document.getElementById('det-noticias');
   
   let currentChart = null;
   let activeCategoryFilter = 'todos';
   let activeRecomFilter = 'todos';
   let searchQuery = '';
   let activeFii = null; // FII aberto no momento
+  let activeDividendoMaisRecente = 0;
   
   // Elementos do Simulador
   const calcCotas = document.getElementById('calc-cotas');
@@ -203,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Abre a Sidebar de Detalhes
   function openSidebar(fii) {
     activeFii = fii; // Define o FII ativo
+    activeDividendoMaisRecente = fii.dividendos_recentes[fii.dividendos_recentes.length - 1];
     
     detTicker.innerText = fii.ticker;
     detNome.innerText = fii.nome;
@@ -212,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializa os campos do Simulador
     calcCotas.value = 100;
-    const precoLimpo = parseFloat(fii.preco.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 100;
+    const precoLimpo = parseFloat(fii.preco.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
     calcCusto.value = precoLimpo;
     updateSimulation();
     
@@ -253,8 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarOverlay.classList.add('active');
     document.body.style.overflow = 'hidden'; // Impede o scroll de fundo
 
-    // Renderizar Gráfico de Proventos
-    renderChart(fii);
+    // Renderizar Gráfico de Proventos e Notícias em tempo real
+    loadAndRenderChart(fii);
+    loadNews(fii.ticker);
   }
 
   // Fecha a Sidebar
@@ -275,8 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const custoTotal = cotas * custoMedio;
     calcResultTotal.innerText = `R$ ${custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     
-    // Obtém o dividendo mais recente (último item do array dividendos_recentes)
-    const ultimoDividendo = activeFii.dividendos_recentes[activeFii.dividendos_recentes.length - 1];
+    // Obtém o dividendo mais recente (seja real-time ou fallback)
+    const ultimoDividendo = activeDividendoMaisRecente;
     
     // Provento mensal estimado
     const proventoMensal = cotas * ultimoDividendo;
@@ -292,8 +296,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Renderiza o Gráfico de Dividendos com base nas cores do Fundo
-  function renderChart(fii) {
+  // Função auxiliar de busca resiliente com fallback de proxies CORS
+  async function fetchWithCORS(targetUrl) {
+    const proxies = [
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      url => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`
+    ];
+
+    let lastError = null;
+    for (let i = 0; i < proxies.length; i++) {
+      const proxyUrl = proxies[i](targetUrl);
+      try {
+        const response = await fetch(proxyUrl);
+        if (response.ok) {
+          return await response.json();
+        }
+      } catch (e) {
+        console.warn(`Proxy CORS #${i + 1} falhou para URL: ${targetUrl}. Tentando o próximo...`);
+        lastError = e;
+      }
+    }
+    throw lastError || new Error(`Todos os proxies CORS falharam para URL: ${targetUrl}`);
+  }
+
+  // Gera labels de data retroativa para fallbacks (últimos 6 meses baseados na data atual)
+  function getFallbackLabels() {
+    const labels = [];
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const hoje = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+      labels.push(`${meses[d.getMonth()]}/${String(d.getFullYear()).slice(-2)}`);
+    }
+    return labels;
+  }
+
+  // Formata tempo relativo da publicação da notícia
+  function formatRelativeTime(timestampSeconds) {
+    const diffMs = Date.now() - (timestampSeconds * 1000);
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMinutes < 60) {
+      return `há ${Math.max(1, diffMinutes)} min`;
+    } else if (diffHours < 24) {
+      return `há ${diffHours} h`;
+    } else if (diffDays === 1) {
+      return `ontem`;
+    } else {
+      return `há ${diffDays} dias`;
+    }
+  }
+
+  // Renderiza o gráfico do Chart.js puro a partir de dados fornecidos
+  function renderChartWithData(ticker, recomendacao, values, labels) {
     if (currentChart) {
       currentChart.destroy();
     }
@@ -304,10 +362,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let lineColor = '#3b82f6';
     let gradientStart = 'rgba(59, 130, 246, 0.2)';
     
-    if (fii.recomendacao === 'Comprar') {
+    if (recomendacao === 'Comprar') {
       lineColor = '#10b981';
       gradientStart = 'rgba(16, 185, 129, 0.2)';
-    } else if (fii.recomendacao === 'Vender') {
+    } else if (recomendacao === 'Vender') {
       lineColor = '#f43f5e';
       gradientStart = 'rgba(244, 63, 94, 0.2)';
     }
@@ -316,16 +374,13 @@ document.addEventListener('DOMContentLoaded', () => {
     gradient.addColorStop(0, gradientStart);
     gradient.addColorStop(1, 'rgba(16, 20, 29, 0)');
 
-    // Gera os labels para os últimos 6 meses (ex: Mês 1 a Mês 6)
-    const labels = ['Dez/24', 'Jan/25', 'Fev/25', 'Mar/25', 'Abr/25', 'Mai/25'];
-
     currentChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [{
           label: 'Dividendos por Cota',
-          data: fii.dividendos_recentes,
+          data: values,
           borderColor: lineColor,
           borderWidth: 2,
           backgroundColor: gradient,
@@ -391,19 +446,127 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Busca as cotações em tempo real da B3 via API do Yahoo e proxy CORS
+  // Carrega e atualiza o gráfico de proventos históricos com dados em tempo real do Yahoo Finance (Ideia 1)
+  async function loadAndRenderChart(fii) {
+    // Primeiro renderiza imediatamente com dados locais como fallback seguro
+    const fallbackLabels = getFallbackLabels();
+    renderChartWithData(fii.ticker, fii.recomendacao, fii.dividendos_recentes, fallbackLabels);
+
+    try {
+      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${fii.ticker}.SA?events=div&range=1y`;
+      const data = await fetchWithCORS(targetUrl);
+
+      if (data && data.chart && data.chart.result && data.chart.result[0]) {
+        const events = data.chart.result[0].events;
+        if (events && events.dividends) {
+          const dividendsObj = events.dividends;
+          const divList = [];
+          for (const key in dividendsObj) {
+            divList.push({
+              date: dividendsObj[key].date,
+              amount: dividendsObj[key].amount
+            });
+          }
+
+          if (divList.length > 0) {
+            // Ordena cronologicamente (crescente)
+            divList.sort((a, b) => a.date - b.date);
+
+            // Pega os 6 últimos dividendos
+            const last6Divs = divList.slice(-6);
+
+            const values = last6Divs.map(d => d.amount);
+            const labels = last6Divs.map(d => {
+              const dateObj = new Date(d.date * 1000);
+              const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+              const mesIndex = dateObj.getUTCMonth();
+              const ano = String(dateObj.getUTCFullYear()).slice(-2);
+              return `${meses[mesIndex]}/${ano}`;
+            });
+
+            // Atualiza a variável reativa de dividendos da simulação
+            activeDividendoMaisRecente = values[values.length - 1];
+            updateSimulation();
+
+            // Atualiza o gráfico com dados reais do Yahoo Finance!
+            renderChartWithData(fii.ticker, fii.recomendacao, values, labels);
+            return;
+          }
+        }
+      }
+      console.log(`Dados de dividendos em tempo real indisponíveis para ${fii.ticker}. Mantendo locais.`);
+    } catch (e) {
+      console.warn(`Erro ao obter proventos dinâmicos de ${fii.ticker}:`, e);
+    }
+  }
+
+  // Carrega o feed de notícias e fatos relevantes em tempo real da sidebar (Ideia 3)
+  async function loadNews(ticker) {
+    detNoticias.innerHTML = `
+      <div style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 1rem;">
+        Carregando notícias em tempo real...
+      </div>
+    `;
+
+    try {
+      const targetUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${ticker}.SA`;
+      const data = await fetchWithCORS(targetUrl);
+
+      if (data && data.news && data.news.length > 0) {
+        detNoticias.innerHTML = '';
+        
+        // Filtra para remover notícias sem título ou link e pega no máximo 4
+        const validNews = data.news.filter(n => n.title && n.link).slice(0, 4);
+
+        if (validNews.length === 0) {
+          showNoNewsMessage();
+          return;
+        }
+
+        validNews.forEach(item => {
+          const timeStr = formatRelativeTime(item.providerPublishTime);
+          const itemEl = document.createElement('div');
+          itemEl.className = 'news-item';
+          
+          itemEl.innerHTML = `
+            <a href="${item.link}" target="_blank" class="news-title">${item.title}</a>
+            <div class="news-meta">
+              <span>${item.publisher}</span>
+              <span>${timeStr}</span>
+            </div>
+          `;
+          detNoticias.appendChild(itemEl);
+        });
+      } else {
+        showNoNewsMessage();
+      }
+    } catch (e) {
+      console.warn(`Erro ao buscar notícias para ${ticker}:`, e);
+      detNoticias.innerHTML = `
+        <div style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 1rem;">
+          Não foi possível carregar as notícias de mercado.
+        </div>
+      `;
+    }
+  }
+
+  function showNoNewsMessage() {
+    detNoticias.innerHTML = `
+      <div style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 1rem;">
+        Nenhuma notícia recente disponível no momento para este ativo.
+      </div>
+    `;
+  }
+
+  // Busca as cotações em tempo real da B3 via API do Yahoo e proxy CORS de forma resiliente
   async function updatePricesRealTime() {
     const tickers = Object.keys(fiisData);
     
-    // Dispara as consultas em paralelo para todos os tickers
     const promises = tickers.map(async (ticker) => {
-      const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA`)}`;
+      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA`;
       
       try {
-        const response = await fetch(url);
-        if (!response.ok) return;
-        const data = await response.json();
-        
+        const data = await fetchWithCORS(targetUrl);
         if (data && data.chart && data.chart.result && data.chart.result[0]) {
           const price = data.chart.result[0].meta.regularMarketPrice;
           if (price) {
@@ -411,7 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } catch (e) {
-        console.warn(`Erro ao buscar cotação de ${ticker}:`, e);
+        console.warn(`Erro ao buscar cotação em tempo real de ${ticker}:`, e);
       }
     });
 
@@ -421,10 +584,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Renderiza novamente os cards com os preços reais atualizados
       renderCards();
       
-      // Se o modal lateral estiver aberto, atualiza o preço e o simulador na tela
+      // Se a sidebar estiver aberta para um FII, atualiza o preço e o simulador na tela
       if (activeFii && fiisData[activeFii.ticker]) {
         detPreco.innerText = fiisData[activeFii.ticker].preco;
-        const precoLimpo = parseFloat(fiisData[activeFii.ticker].preco.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 100;
+        const priceStr = fiisData[activeFii.ticker].preco;
+        const precoLimpo = parseFloat(priceStr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
         calcCusto.value = precoLimpo;
         updateSimulation();
       }

@@ -588,6 +588,45 @@ footer {
 }
 
 
+/* Estilo de Notícias na Sidebar */
+.news-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.75rem;
+  width: 100%;
+}
+
+.news-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.news-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-main);
+  text-decoration: none;
+  line-height: 1.45;
+  transition: var(--transition-smooth);
+}
+
+.news-title:hover {
+  color: var(--color-hold);
+  text-decoration: underline;
+}
+
+.news-meta {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 0.15rem;
+}
+
+
 /* Responsive adjustment */
 @media (max-width: 768px) {
   .details-sidebar {
