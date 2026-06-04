@@ -9,6 +9,7 @@ const fiisData = {
     "explicacoes": "Fundo de tijolo focado em galpões logísticos de altíssimo padrão (classe A+). Possui um dos melhores portfólios do mercado, com 10 propriedades localizadas principalmente em hubs de última milha (SP, RJ, MG, RS, PR). Excelente perfil de inquilinos corporativos de grande porte (Mercado Livre, Magazine Luiza, GPA, Whirlpool). Contratos atípicos de longo prazo (cerca de 50% da receita), proporcionando forte previsibilidade.",
     "pontos_criticos": "Riscos pontuais associados à vacância em locais específicos (atualmente muito baixa, abaixo de 3%). Risco de crédito de grandes inquilinos varejistas em cenários macroeconômicos adversos. Eventuais renegociações de contratos típicos em ciclos de baixa do mercado de logística.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Renovações contratuais com reajustes favoráveis de inflação (IPCA) e vacância física próxima de zero.",
     "dividendos_recentes": [0.87, 0.87, 0.87, 0.87, 0.87, 0.87]
   },
@@ -22,6 +23,7 @@ const fiisData = {
     "explicacoes": "Fundo focado em galpões logísticos classe A/A+ gerido pelo Pátria-VBI Asset. Portfólio premium com contratos de longo prazo e inquilinos de primeira linha (Nestlé, ArcelorMittal, Solistica). Possui projetos de expansão ativos com alta rentabilidade estimada.",
     "pontos_criticos": "Elevação temporária da vacância para 10,7% após desocupações da Sequoia (Extrema) e Dia% (Mauá), ambas em recuperação judicial e que geraram inadimplências de R$ 0,17/cota. VPA sofreu queda devido ao impacto dos juros altos na reavaliação de ativos.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
     "boas_noticias": "Projeção de queda na vacância para 3,9% devido à rápida reocupação das áreas por inquilinos como Nestlé e Solistica.",
     "dividendos_recentes": [0.75, 0.75, 0.75, 0.75, 0.75, 0.75]
   },
@@ -35,6 +37,7 @@ const fiisData = {
     "explicacoes": "Fundo de renda urbana gerido pela Pátria (antiga CSHG). Foco em varejo comercial e educacional com forte estratégia de giro imobiliário ativo. Histórico excepcional de ganho de capital com distribuição recorrente e dividendos extraordinários expressivos no fim de semestres.",
     "pontos_criticos": "Exposição relevante de 32% ao setor educacional, que sofre pressões estruturais (EAD), e forte concentração em inquilinos específicos como Lojas Pernambucanas (17% da receita) e Yduqs.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
     "boas_noticias": "Estabilidade dos dividendos recorrentes em R$ 0,90 por cota e sucesso na integração do novo pipeline de aquisições.",
     "dividendos_recentes": [0.90, 0.90, 0.90, 0.90, 0.90, 1.55]
   },
@@ -45,9 +48,10 @@ const fiisData = {
     "preco": "R$ 98,50",
     "recomendacao": "Manter",
     "alerta": 5,
-    "explicacoes": "Fundo de tijolo de renda urbana e lajes corporativas com portfólio capilarizado de 61 imóveis in 14 estados. Negociado com desconto patrimonial atraente (P/VP ~0,86) e alto Dividend Yield histórico (acima de 14% a.a.). Realizou vendas ativas com ganho de capital expressivo.",
-    "pontos_criticos": "Altíssima concentração de vencimentos de locações em Novembro de 2027 (Edifício Sede III no DF e CSL em SP representam juntos mais de 28% da receita). Além disso, 10 imóveis continuam pendentes de regularização cartorária.",
+    "explicacoes": "Fundo de tijolo de renda urbana e lajes corporativas com portfólio capilarizado de 61 imóveis em 14 estados. Negociado com desconto patrimonial atraente (P/VP ~0,86) e alto Dividend Yield histórico (acima de 14% a.a.). Realizou vendas ativas com ganho de capital expressivo.",
+    "pontos_criticos": "Altíssima concentração de vencimentos de locações in Novembro de 2027 (Edifício Sede III no DF e CSL em SP representam juntos mais de 28% da receita). Além disso, 10 imóveis continuam pendentes de regularização cartorária.",
     "tendencia_dividendos": "cair",
+    "tendencia_preco": "cair",
     "boas_noticias": "Geração extraordinária de caixa recente decorrente de vendas de ativos imobiliários secundários.",
     "dividendos_recentes": [1.03, 1.03, 1.03, 1.03, 1.03, 0.99]
   },
@@ -61,6 +65,7 @@ const fiisData = {
     "explicacoes": "Primeiro Fiagro da Suno Asset, focado em crédito privado do agronegócio (CRAs e CRIs). Portfólio focado na cultura da soja e milho, com excelente histórico de adimplência e governança apoiada na Serasa Experian. Apresenta um dos maiores retornos do setor.",
     "pontos_criticos": "Alta concentração de risco em um único grupo devedor (Boa Safra Sementes S/A representa cerca de 89% do patrimônio líquido do fundo). Risco geral de quebra de safra e flutuação de commodities agrícolas.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Manutenção de 100% de adimplência na carteira e dividend yield anualizado constante na casa de 13% a 15%.",
     "dividendos_recentes": [0.10, 0.10, 0.10, 0.10, 0.10, 0.10]
   },
@@ -74,6 +79,7 @@ const fiisData = {
     "explicacoes": "Fundo de shoppings gerido pela Vinci Partners. Portfólio bem diversificado com participações em mais de 20 shoppings de grande porte. Alta liquidez diária na B3. Contratos corrigidos por IGP-M e IGP-DI.",
     "pontos_criticos": "Vacância física elevada em shoppings específicos (como Shopping Crystal com 26,5% e Center Shopping Rio com 18,2%). Impactos contábeis temporários devido a reavaliações negativas ao valor justo de ativos imobiliários.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
     "boas_noticias": "Conclusão de aquisição estratégica de participação no Plaza Sul Shopping (cap rate de 8,5%) e manutenção de reservas acumuladas robustas para distribuição.",
     "dividendos_recentes": [0.80, 0.80, 0.80, 0.80, 0.85, 0.85]
   },
@@ -87,6 +93,7 @@ const fiisData = {
     "explicacoes": "O maior e mais tradicional fundo imobiliário de logística do Brasil, hoje sob gestão do Pátria. Portfólio gigante e resiliente, focado em galpões de alta qualidade localizados próximos a grandes centros urbanos (especialmente o cinturão de SP). Histórico inigualável de consistência de dividendos e governança.",
     "pontos_criticos": "Preço de mercado frequentemente negocia com ágio elevado frente ao valor patrimonial, o que reduz o Dividend Yield imediato de entrada. Riscos normais de renovação de contratos em ativos maduros.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Excelente velocidade de locação de novas áreas e forte ganho de capital recorrente na venda fracionada de ativos maduros.",
     "dividendos_recentes": [1.10, 1.10, 1.10, 1.10, 1.10, 1.50]
   },
@@ -100,6 +107,7 @@ const fiisData = {
     "explicacoes": "Fundo de renda urbana com foco em contratos de locação atípicos (Built-to-Suit) de longo prazo (WALE de mais de 14 anos) com grandes varejistas (Assaí, Pão de Açúcar, Obramax). Vacância física extremamente baixa (0,22%). Adquiriu recentemente 70% do Hospital Albert Einstein em SP.",
     "pontos_criticos": "Alavancagem financeira relevante em decorrência do modelo de aquisição parcelada e desenvolvimento de novos ativos. Riscos normais de execução e atrasos em obras em andamento.",
     "tendencia_dividendos": "aumentar",
+    "tendencia_preco": "subir",
     "boas_noticias": "Nova emissão bilionária concluída com sucesso para aquisição de portfólio de alta rentabilidade que deve impulsionar dividendos futuros.",
     "dividendos_recentes": [0.90, 0.90, 0.90, 0.93, 0.93, 0.93]
   },
@@ -113,6 +121,7 @@ const fiisData = {
     "explicacoes": "Foco em galpões industriais e logísticos de alta especificação técnica sob a modalidade de contratos atípicos (longo prazo). Recentemente passou por desdobramento de cotas de 1:10 para melhorar a liquidez no mercado secundário. Fusão e incorporação ativa de novos ativos.",
     "pontos_criticos": "Eventual risco de crédito de indústrias de médio porte que ocupam seus galpões. Concentração de receitas em locatários de setores específicos. Desafios de reinvestimento de caixa em novos ativos sob taxas de juros elevadas.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
     "boas_noticias": "Sucesso no desdobramento de cota atraindo milhares de novos cotistas e elevando a liquidez média diária.",
     "dividendos_recentes": [0.09, 0.09, 0.09, 0.09, 0.09, 0.09]
   },
@@ -126,6 +135,7 @@ const fiisData = {
     "explicacoes": "Líder do segmento de shopping centers na bolsa, com participações em ativos icônicos como Catarina Fashion Outlet, Cidade de São Paulo e Cidade Jardim. Possui alta liquidez de caixa e excelente gestão ativa de portfólio (expansões de ABL gerando retornos de dois dígitos).",
     "pontos_criticos": "Registrou uma desvalorização contábil pontual de ativos de R$ 106,4 milhões que impactou o resultado contábil trimestral. O ativo Caxias Shopping apresenta a maior vacância física do portfólio (5,08%). Risco de crédito associado a recebíveis imobiliários High Yield vinculados.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Forte recuperação de vendas das lojas físicas pós-pandemia e fluxo de caixa recorrente robusto com baixa vacância agregada.",
     "dividendos_recentes": [0.90, 0.90, 0.92, 0.92, 0.92, 0.92]
   },
@@ -139,6 +149,7 @@ const fiisData = {
     "explicacoes": "Fundo de papel gerido pela Kinea Investimentos com alta qualidade de crédito. Alocação dinâmica entre IPCA (60%) e CDI (37%), permitindo excelente adaptação em diferentes ciclos macroeconômicos. A alocação de recursos da 5ª emissão foi executada rapidamente.",
     "pontos_criticos": "Sensibilidade das distribuições às variações da inflação (IPCA) e taxas de juros (Selic). Risco de oscilação nos proventos em cenários de deflação temporária.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Ausência completa de inadimplência (default) na carteira e taxas médias de aquisição de CRIs altamente atrativas em relação ao mercado secundário.",
     "dividendos_recentes": [0.80, 0.80, 0.80, 0.82, 0.85, 0.85]
   },
@@ -152,6 +163,7 @@ const fiisData = {
     "explicacoes": "Fundo de galpões logísticos de alto padrão em locais estratégicos de distribuição (como Cajamar e CD Renner). O preço de mercado da cota está com desconto relevante frente ao valor de avaliação patrimonial imobiliário.",
     "pontos_criticos": "Reportou resultado contábil negativo recente por ajustes de valor justo e despesas extraordinárias, embora a geração de caixa financeiro siga saudável. Vacância pontual em galpões específicos (como CD Leroy M e Duquecx RJ).",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
     "boas_noticias": "Geração estável de caixa financeiro e forte posicionamento em e-commerce (inquilinos premium).",
     "dividendos_recentes": [0.78, 0.78, 0.78, 0.78, 0.78, 0.78]
   },
@@ -165,6 +177,7 @@ const fiisData = {
     "explicacoes": "O maior FII da B3 em número de cotistas (1,28 milhão). Focado na geração de renda mensal estável por meio de investimentos em CRIs (80% da carteira, sendo a maioria indexada a IPCA e CDI). Excelente liquidez e diversificação extrema de devedores.",
     "pontos_criticos": "Forte indexação à inflação (85% dos CRIs em IPCA), trazendo volatilidade nas receitas em meses de baixa inflação. Pequenos riscos de incorporação imobiliária nas permutas financeiras diretas.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
     "boas_noticias": "Consistência histórica impecável na distribuição mensal de dividendos e manutenção da adimplência dos devedores.",
     "dividendos_recentes": [0.10, 0.10, 0.10, 0.10, 0.10, 0.10]
   },
@@ -178,6 +191,7 @@ const fiisData = {
     "explicacoes": "Fundo de debêntures de infraestrutura gerido pelo Itaú Asset. Investe em dívidas privadas de grandes projetos (energia, rodovias, saneamento). Os rendimentos distribuídos são **100% isentos de Imposto de Renda** para pessoas físicas. Carteira majoritariamente atrelada a IPCA + taxas elevadas.",
     "pontos_criticos": "Risco de crédito corporativo das concessionárias de infraestrutura. Sensibilidade a variações acentuadas do spread de crédito de debêntures no mercado secundário (marcação a mercado).",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Portfólio 100% focado em setores essenciais e defensivos da economia brasileira, gerando fluxo estável e indexado à inflação.",
     "dividendos_recentes": [1.05, 1.05, 1.05, 1.05, 1.05, 1.05]
   },
@@ -191,6 +205,7 @@ const fiisData = {
     "explicacoes": "Fiagro gerido pela Kinea, focado em ativos de crédito privado do agronegócio (CRAs e FIDCs). Excelente alocação de portfólio (103% do PL), distribuído de forma equilibrada entre CDI+ e IPCA+. Carteira muito defensiva, voltada para grandes players do setor (bioenergia, insumos).",
     "pontos_criticos": "Uso de alavancagem por meio de operações compromissadas reversas atreladas a CRAs (cerca de 4,3% do PL). O rendimento sofre oscilações normais devido a variações na taxa Selic básica de juros.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Inadimplência zero na carteira e ótimo yield recorrente devido à manutenção da taxa Selic em patamar elevado.",
     "dividendos_recentes": [1.00, 1.00, 1.05, 1.05, 1.10, 1.10]
   },
@@ -204,6 +219,7 @@ const fiisData = {
     "explicacoes": "Fundo híbrido tradicional proprietário de edifícios corporativos e galpões logísticos classe A. Histórico de mais de uma década de solidez e previsibilidade de renda. Indexação equilibrada aos índices de inflação (IPCA e IGP-M). Gestão Kinea ativa e conservadora.",
     "pontos_criticos": "Inadimplência pontual expressiva de cerca de 10% no Edifício Joaquim Floriano em SP (impactando 1,2% da receita total). Taxas de administração e despesas de vacância física localizadas geram fricção na receita.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
     "boas_noticias": "Vacância física agregada sob controle e altíssima resiliência das locações logísticas em SP.",
     "dividendos_recentes": [1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
   },
@@ -217,6 +233,7 @@ const fiisData = {
     "explicacoes": "Fundo de papel High Grade (baixo risco de crédito) indexado majoritariamente à inflação (IPCA + taxa média de 9,46%). O preço atual da cota está com deságio relevante frente ao valor patrimonial da carteira, propiciando um yield atrativo de entrada.",
     "pontos_criticos": "Alavancagem via compromissadas reversas equivalendo a 7,7% do PL. Volatilidade pontual de curto prazo na distribuição devido à deflação sazonal de indexadores inflacionários.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Carteira de crédito 100% adimplente e saudável. O deságio de negociação melhora as perspectivas de ganho de capital na valorização.",
     "dividendos_recentes": [0.70, 0.75, 0.80, 0.85, 0.90, 0.90]
   },
@@ -230,6 +247,7 @@ const fiisData = {
     "explicacoes": "Um dos FI-Infras mais consolidados do mercado. Investe em debêntures de infraestrutura de alta qualidade de crédito (setores de energia elétrica, telecomunicações e saneamento). Rendimentos totalmente **isentos de Imposto de Renda** para pessoas físicas. Gestão Kinea altamente experiente.",
     "pontos_criticos": "Oscilações nos rendimentos decorrentes de pagamentos atípicos ou amortizações de debêntures na carteira. Risco padrão de crédito de concessionárias públicas de infraestrutura.",
     "tendencia_dividendos": "manter",
+    "tendencia_preco": "subir",
     "boas_noticias": "Excelente histórico de yields reais elevados (acima do retorno de NTN-Bs do tesouro direto) com proteção inflacionária robusta.",
     "dividendos_recentes": [1.15, 1.15, 1.15, 1.15, 1.20, 1.20]
   }

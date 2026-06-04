@@ -134,19 +134,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = `fii-card recom-${fii.recomendacao.toLowerCase()}`;
     
-    // Configura o Ícone de Tendência e Classe
-    let trendIcon = '';
-    let trendClass = '';
-    if (fii.tendencia_dividendos === 'aumentar') {
-      trendIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>';
-      trendClass = 'trend-aumentar';
-    } else if (fii.tendencia_dividendos === 'manter') {
-      trendIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
-      trendClass = 'trend-manter';
-    } else {
-      trendIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>';
-      trendClass = 'trend-cair';
+    // Função para pegar ícone e classe da tendência
+    function getTrendData(trendValue) {
+      let icon = '';
+      let trendClass = '';
+      if (trendValue === 'aumentar' || trendValue === 'subir') {
+        icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>';
+        trendClass = 'trend-aumentar';
+      } else if (trendValue === 'manter') {
+        icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line></svg>';
+        trendClass = 'trend-manter';
+      } else {
+        icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>';
+        trendClass = 'trend-cair';
+      }
+      return { icon, trendClass };
     }
+
+    const trendPreco = getTrendData(fii.tendencia_preco);
+    const trendDivs = getTrendData(fii.tendencia_dividendos);
 
     card.innerHTML = `
       <div class="card-header">
@@ -156,16 +162,28 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <span class="badge-type">${fii.tipo.split(' ')[0]}</span>
       </div>
-      <div class="card-info-row">
+      <div class="card-info-row" style="align-items: flex-start;">
         <div class="info-item">
           <span class="info-label">Preço</span>
-          <span class="info-value">${fii.preco}</span>
+          <span class="info-value" style="font-size: 1.05rem;">${fii.preco}</span>
         </div>
-        <div class="info-item">
-          <span class="info-label">Tendência Divs</span>
-          <div class="tendencia-wrapper ${trendClass}">
-            <span class="trend-arrow">${trendIcon}</span>
-            <span class="info-value" style="font-size: 0.85rem; text-transform: capitalize;">${fii.tendencia_dividendos}</span>
+        <div class="info-item" style="flex: 1.3;">
+          <span class="info-label">Tendências</span>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.2rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; font-size: 0.8rem;">
+              <span style="color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase;">Preço:</span>
+              <div class="tendencia-wrapper ${trendPreco.trendClass}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
+                <span class="trend-arrow" style="display: inline-flex;">${trendPreco.icon}</span>
+                <span class="info-value" style="font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">${fii.tendencia_preco}</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; font-size: 0.8rem;">
+              <span style="color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase;">Divs:</span>
+              <div class="tendencia-wrapper ${trendDivs.trendClass}" style="display: inline-flex; align-items: center; gap: 0.2rem;">
+                <span class="trend-arrow" style="display: inline-flex;">${trendDivs.icon}</span>
+                <span class="info-value" style="font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">${fii.tendencia_dividendos === 'aumentar' ? 'Subir' : fii.tendencia_dividendos}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
