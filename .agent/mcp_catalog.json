@@ -1,0 +1,74 @@
+[
+  {
+    "id": "google-search",
+    "name": "Google Search MCP",
+    "description": "Permite realizar buscas na web em tempo real utilizando APIs de busca ou buscadores públicos.",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-google-search"],
+    "env": {
+      "GOOGLE_API_KEY": "",
+      "GOOGLE_CX": ""
+    },
+    "keywords": ["busca", "search", "google", "web", "pesquisa", "internet"]
+  },
+  {
+    "id": "brave-search",
+    "name": "Brave Search MCP",
+    "description": "Alternativa de busca na web rápida e sem chaves complexas (usa chave Brave Search).",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+    "env": {
+      "BRAVE_API_KEY": ""
+    },
+    "keywords": ["busca", "search", "brave", "web", "pesquisa", "internet"]
+  },
+  {
+    "id": "fetch",
+    "name": "Fetch MCP",
+    "description": "Permite baixar arquivos binários (PDFs) e ler conteúdo bruto de páginas da web convertendo para markdown.",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-fetch"],
+    "env": {},
+    "keywords": ["fetch", "baixar", "download", "url", "pdf", "requisicao", "http"]
+  },
+  {
+    "id": "filesystem",
+    "name": "Filesystem MCP",
+    "description": "Concede acesso seguro de leitura e escrita a diretórios locais específicos da máquina.",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/toten/projeto-antigravity"],
+    "env": {},
+    "keywords": ["filesystem", "arquivo", "escrever", "ler", "salvar", "diretorio", "hd"]
+  },
+  {
+    "id": "playwright",
+    "name": "Playwright MCP",
+    "description": "Navegador automatizado (Chrome) que interage com sites dinâmicos, preenche formulários e tira screenshots.",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-playwright"],
+    "env": {},
+    "keywords": ["playwright", "puppeteer", "browser", "navegador", "scrape", "scraping", "captcha", "screenshot"]
+  },
+  {
+    "id": "postgres",
+    "name": "Postgres MCP",
+    "description": "Permite conectar a bancos de dados PostgreSQL para executar queries, ler tabelas e schemas.",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-postgres"],
+    "env": {
+      "DATABASE_URL": ""
+    },
+    "keywords": ["postgres", "postgresql", "banco", "dados", "sql", "query", "tabela"]
+  },
+  {
+    "id": "github",
+    "name": "GitHub MCP",
+    "description": "Permite criar issues, pull requests, gerenciar repositórios e branches diretamente no GitHub.",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-github"],
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": ""
+    },
+    "keywords": ["github", "git", "repositorio", "branch", "pr", "pull-request", "issue"]
+  }
+]

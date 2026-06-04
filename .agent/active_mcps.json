@@ -1,0 +1,9 @@
+[
+  "brave-search",
+  "filesystem",
+  "google-search",
+  "postgres",
+  "fetch",
+  "github",
+  "playwright"
+]
