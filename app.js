@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const detNoticias = document.getElementById('det-noticias');
   const detPvp = document.getElementById('det-pvp');
   const detVpa = document.getElementById('det-vpa');
+  const detProxDiv = document.getElementById('det-prox-div');
+  const detDataCom = document.getElementById('det-data-com');
   
   // Elementos Adicionais da Carteira
   const sortSelect = document.getElementById('sort-select');
@@ -573,10 +575,41 @@ document.addEventListener('DOMContentLoaded', () => {
     detTrendIcon.className = `trend-arrow ${trendClass}`;
     detTrendIcon.innerHTML = trendIconHtml;
 
+    // Reset da Data Com
+    if (detProxDiv) detProxDiv.innerText = '-';
+    if (detDataCom) detDataCom.innerText = '(Buscando Data Com...)';
+
     // Abrir Sidebar
     detailsSidebar.classList.add('open');
     sidebarOverlay.classList.add('active');
     document.body.style.overflow = 'hidden'; // Impede o scroll de fundo
+
+    // Buscar Data Com em tempo real
+    fetch(`https://mfinance.com.br/api/v1/fiis/dividends/${fii.ticker}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.dividends && data.dividends.length > 0) {
+          const ultimosDividendos = data.dividends;
+          const dividendoAtual = ultimosDividendos[ultimosDividendos.length - 1];
+          
+          if (detProxDiv) detProxDiv.innerText = `R$ ${dividendoAtual.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+          
+          if (dividendoAtual.declaredDate && detDataCom) {
+            const dataObj = new Date(dividendoAtual.declaredDate);
+            const dataFormatada = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+            detDataCom.innerText = `(Data Com: ${dataFormatada})`;
+          } else if (detDataCom) {
+            detDataCom.innerText = '(Data Com: Não informada)';
+          }
+        } else {
+          if (detProxDiv) detProxDiv.innerText = '-';
+          if (detDataCom) detDataCom.innerText = '(Sem informações recentes)';
+        }
+      })
+      .catch(e => {
+        console.warn(`Erro ao buscar dividendos para ${fii.ticker}:`, e);
+        if (detDataCom) detDataCom.innerText = '(Erro na busca)';
+      });
 
     // Renderizar Gráfico de Proventos, Notícias e Preço em tempo real
     loadAndRenderChart(fii);
@@ -1089,38 +1122,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Busca as cotações em tempo real de todos os ativos da B3 na inicialização de forma sequencial com delay
+  // Busca as cotações em tempo real de todos os ativos da B3 na inicialização de forma unificada
   async function updatePricesRealTime() {
-    const tickers = Object.keys(fiisData);
+    const targetUrl = 'https://mfinance.com.br/api/v1/fiis';
     
-    for (const ticker of tickers) {
-      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}.SA`;
+    try {
+      // Fazemos apenas uma requisição para pegar todos os FIIs e poupar rede
+      const response = await fetch(targetUrl);
+      if (!response.ok) throw new Error('Falha na resposta da API');
       
-      try {
-        const data = await fetchWithCORS(targetUrl);
-        if (data && data.chart && data.chart.result && data.chart.result[0]) {
-          const price = data.chart.result[0].meta.regularMarketPrice;
-          if (price) {
-            fiisData[ticker].preco = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
+      const data = await response.json();
+      
+      // Criamos um mapa rápido para buscar o preço
+      const pricesMap = {};
+      data.forEach(item => {
+        if (item.symbol && item.lastPrice) {
+          pricesMap[item.symbol] = item.lastPrice;
         }
-      } catch (e) {
-        console.warn(`Erro ao buscar cotação em tempo real de ${ticker}:`, e);
-      }
-      // Pequeno delay de 120ms para espaçar as consultas e evitar o bloqueio de IP 429
-      await sleep(120);
-    }
+      });
 
-    // Renderiza novamente os cards com os preços reais atualizados na grade principal
-    renderCards();
-    
-    // Se a sidebar estiver aberta para um FII, atualiza o preço na tela
-    if (activeFii && fiisData[activeFii.ticker]) {
-      detPreco.innerText = fiisData[activeFii.ticker].preco;
-      const priceStr = fiisData[activeFii.ticker].preco;
-      const precoLimpo = parseFloat(priceStr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
-      calcCusto.value = precoLimpo;
-      updateSimulation();
+      // Atualiza os preços locais no nosso objeto fiisData
+      let hasUpdates = false;
+      const tickers = Object.keys(fiisData);
+      for (const ticker of tickers) {
+        if (pricesMap[ticker]) {
+          const price = pricesMap[ticker];
+          fiisData[ticker].preco = `R$ ${price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          hasUpdates = true;
+        }
+      }
+
+      // Se atualizamos pelo menos um preço, renderizamos as mudanças
+      if (hasUpdates) {
+        renderCards();
+        
+        // Se a sidebar estiver aberta para um FII, atualiza o preço e o P/VP na tela
+        if (activeFii && fiisData[activeFii.ticker]) {
+          const updatedFii = fiisData[activeFii.ticker];
+          detPreco.innerText = updatedFii.preco;
+          const priceStr = updatedFii.preco;
+          const precoLimpo = parseFloat(priceStr.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 100;
+          calcCusto.value = precoLimpo;
+          
+          // Recalcular o P/VP para a sidebar
+          const pvp = updatedFii.vpa ? (precoLimpo / updatedFii.vpa) : 0;
+          if (detPvp) {
+            detPvp.innerText = pvp > 0 ? pvp.toFixed(2) : '-';
+            if (pvp > 0 && pvp < 1.0) {
+              detPvp.className = 'info-value highlight-yoc';
+            } else {
+              detPvp.className = 'info-value';
+            }
+          }
+          
+          updateSimulation();
+        }
+      }
+
+    } catch (e) {
+      console.warn('Erro ao buscar cotações em tempo real via mfinance:', e);
     }
   }
 
