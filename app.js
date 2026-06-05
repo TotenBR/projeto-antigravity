@@ -427,12 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const isChecked = selectedForCompare.includes(fii.ticker) ? 'checked' : '';
 
     card.innerHTML = `
-      <!-- Checkbox de Comparação -->
-      <label class="compare-checkbox-container" onclick="event.stopPropagation();">
-        <input type="checkbox" class="compare-checkbox" data-ticker="${fii.ticker}" ${isChecked}>
-        <span class="checkmark"></span>
-      </label>
-
       <div class="card-header">
         <div class="card-title-group">
           <h2 style="display: inline-flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
@@ -442,7 +436,14 @@ document.addEventListener('DOMContentLoaded', () => {
           </h2>
           <span>${fii.nome}</span>
         </div>
-        <span class="badge-type">${fii.tipo.split(' ')[0]}</span>
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <!-- Checkbox de Comparação -->
+          <label class="compare-checkbox-container" onclick="event.stopPropagation();" style="position: relative; top: 0; right: 0; margin-top: 2px;" title="Selecionar para comparação">
+            <input type="checkbox" class="compare-checkbox" data-ticker="${fii.ticker}" ${isChecked}>
+            <span class="checkmark"></span>
+          </label>
+          <span class="badge-type">${fii.tipo.split(' ')[0]}</span>
+        </div>
       </div>
       
       <div class="card-body-content" style="display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.25rem;">
