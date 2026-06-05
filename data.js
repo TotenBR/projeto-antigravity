@@ -1,4 +1,50 @@
 const fiisData = {
+  "COIN11": {
+    "ticker": "COIN11",
+    "nome": "Buena Vista Neos Bitcoin High Income ETF",
+    "tipo": "Criptomoedas (Renda)",
+    "preco": "R$ 40,90",
+    "vpa": null,
+    "recomendacao": "Manter",
+    "alerta": 5,
+    "explicacoes": "ETF focado em exposição ao Bitcoin com estratégia de Covered Calls para geração de dividendos (renda mensal). Diferente de um FII comum, sua variação de preço depende totalmente do mercado cripto.",
+    "pontos_criticos": "Ativo de altíssima volatilidade. A distribuição de renda vem de venda de opções, não de aluguéis ou CDI. Em meses de forte queda do Bitcoin, a geração de renda pode ser corroída pela perda de capital.",
+    "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
+    "boas_noticias": "Permite transformar a tese de criptomoedas (ativo sem fluxo de caixa) em uma máquina de distribuição mensal com vantagem tributária de ETF.",
+    "dividendos_recentes": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "fato_relevante_recente": false
+  },
+  "AURO11": {
+    "ticker": "AURO11",
+    "nome": "Buena Vista Neos Gold High Income ETF",
+    "tipo": "Ouro (Renda)",
+    "preco": "R$ 101,00",
+    "vpa": null,
+    "recomendacao": "Manter",
+    "alerta": 4,
+    "explicacoes": "ETF que busca aliar a segurança institucional do Ouro físico (commodity de hedge) com geração de receita por meio de derivativos, pingando dividendo todo mês na conta.",
+    "pontos_criticos": "O Ouro não gera valor intrínseco, então o dividendo vem das operações de opções e taxa de juros. Se o mercado de ouro ficar lateralizado sem volatilidade, o ganho das opções diminui.",
+    "tendencia_dividendos": "manter",
+    "tendencia_preco": "manter",
+    "boas_noticias": "Ótima tese para blindar a carteira contra crises institucionais e inflação, ganhando para segurar o ativo (dividendos mensais).",
+    "dividendos_recentes": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "fato_relevante_recente": false
+  },
   "BRCO11": {
     "ticker": "BRCO11",
     "nome": "Bresco Logística FII",
